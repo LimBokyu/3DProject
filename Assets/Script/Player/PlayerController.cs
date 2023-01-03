@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour
     Camera cam;
     public HealthBar healthBar;
     public RegainBar RegainBar;
+    public ConcentrateBar ConcentrateBar;
 
     public UnityEvent AttackStart;
     public UnityEvent AttackEnd;
@@ -16,20 +17,29 @@ public class PlayerController : MonoBehaviour
 
     private CharacterController controller;
 
+    public Transform groundCheck;
+    public float groundDistance = 0.4f;
+    public LayerMask groundMask;
+
+    private bool isGrounded;
+
+    public Vector3 velocity;
+
+
     private Playerstate state;
 
     private float regainTimer = 0;
     private float attackTimer = 0;
     private bool OnDamaged = false;
 
+    private bool OnFreeSlash = false;
+    private int MaxConcentrate = 500;
+
     [SerializeField]
     private float moveSpeed;
 
     [SerializeField]
     private float jumpSpeed;
-
-    [SerializeField] 
-    private float moveY;
 
     [SerializeField]
     private int maxHealth = 500;
@@ -41,7 +51,7 @@ public class PlayerController : MonoBehaviour
     private int currentHealth;
 
     [SerializeField]
-    private float concentrate;
+    private int concentrate;
 
     private void Awake()
     {
@@ -57,6 +67,9 @@ public class PlayerController : MonoBehaviour
 
         currentHealth = maxHealth;
         prevHealth = maxHealth;
+
+        concentrate = MaxConcentrate;
+
         SetHealth();
     }
 
@@ -68,8 +81,14 @@ public class PlayerController : MonoBehaviour
         DamageTest();
         SetHealth();
         Regain();
+        IsGround();
+        FreeSlashMod();
     }
 
+    public void FixedUpdate()
+    {
+        TestConcentrate();
+    }
     public void SetHealth()
     {
         healthBar.SetMaxHealth(maxHealth);
@@ -77,6 +96,9 @@ public class PlayerController : MonoBehaviour
 
         RegainBar.SetMaxRegainHealth(maxHealth);
         RegainBar.SetRegainHealth(prevHealth);
+
+        ConcentrateBar.SetMax(MaxConcentrate);
+        ConcentrateBar.SetGage(concentrate);
     }
 
     public void DamageTest()
@@ -89,19 +111,21 @@ public class PlayerController : MonoBehaviour
 
     public void Move()
     {
-        if(state != Playerstate.Attack)
+        Vector3 forwardVec = new Vector3(Camera.main.transform.forward.x, 0f, Camera.main.transform.forward.z).normalized;
+        Vector3 rightVec = new Vector3(Camera.main.transform.right.x, 0f, Camera.main.transform.right.z).normalized;
+
+        Vector3 moveInput = Vector3.forward * Input.GetAxis("Vertical") + Vector3.right * Input.GetAxis("Horizontal");
+        if (moveInput.sqrMagnitude > 1f) moveInput.Normalize();
+
+        Vector3 moveVec = forwardVec * moveInput.z + rightVec * moveInput.x;
+      
+        controller.Move(moveVec * moveSpeed * Time.deltaTime);
+        if (moveVec.sqrMagnitude != 0)
         {
-            Vector3 forwardVec = new Vector3(Camera.main.transform.forward.x,0f,Camera.main.transform.forward.z).normalized;
-            Vector3 rightVec = new Vector3(Camera.main.transform.right.x, 0f, Camera.main.transform.right.z).normalized;
-
-            Vector3 moveInput = Vector3.forward * Input.GetAxis("Vertical") + Vector3.right * Input.GetAxis("Horizontal");
-            if (moveInput.sqrMagnitude > 1f) moveInput.Normalize();
-
-            Vector3 moveVec = forwardVec* moveInput.z + rightVec* moveInput.x;
-
-            controller.Move(moveVec * moveSpeed * Time.deltaTime);
+            transform.forward = Vector3.Lerp(transform.forward, moveVec, 0.8f);
         }
     }
+
 
     public void TakeDamage(int damage)
     {
@@ -115,6 +139,46 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void FreeSlashMod()
+    {
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            Debug.Log("Tab");
+            if (OnFreeSlash)
+            {
+                Debug.Log("자유참격Off");
+                OnFreeSlash = false;
+            }
+            else
+            {
+                Debug.Log("자유참격On");
+                OnFreeSlash = true;
+            }
+        }
+    }
+    public void TestConcentrate()
+    {
+        if(concentrate == 0)
+        {
+            Debug.Log("집중도 -> 0");
+            OnFreeSlash = false;
+        }
+
+        if(OnFreeSlash)
+        {
+            concentrate--;
+        }
+        else
+        {
+            if (concentrate >= MaxConcentrate)
+            {
+                return;
+            }
+            concentrate++;
+        }
+        
+    }
+
     public void Regain()
     {
         if(OnDamaged)
@@ -123,11 +187,28 @@ public class PlayerController : MonoBehaviour
             if(regainTimer > 3f)
             {
                 prevHealth--;
-                if(prevHealth == currentHealth)
+                if(prevHealth <= currentHealth)
                 {
                     OnDamaged = false;
                     regainTimer = 0;
+                    prevHealth = currentHealth;
                 }
+            }
+        }
+    }
+
+    public void RegainHelth()
+    {
+        Debug.Log("RegainHealth");
+        int count = 0;
+        while(currentHealth < prevHealth)
+        {
+            Debug.Log("Health+1");
+            currentHealth++;
+            count++;
+            if(count==10)
+            {
+                break;
             }
         }
     }
@@ -141,20 +222,13 @@ public class PlayerController : MonoBehaviour
     {
         if (state != Playerstate.Attack)
         {
-            moveY += Physics.gravity.y * Time.deltaTime;
-            if (Input.GetButtonDown("Jump"))
+            if (Input.GetButtonDown("Jump") && isGrounded)
             {
-                moveY = jumpSpeed;
+                velocity.y = jumpSpeed;
             }
-            else if (controller.isGrounded && moveY < 0)
-            {
-                //moveY += Physics.gravity.y * 0.1f;
-                moveY = 0;
-            }
-
-
-            controller.Move(Vector3.up * moveY * Time.deltaTime);
         }
+
+        controller.Move(Vector3.up * velocity.y * Time.deltaTime);
 
     }
 
@@ -162,6 +236,7 @@ public class PlayerController : MonoBehaviour
     {
         if(Input.GetButtonDown("Fire1") && !anim.GetBool("isAttack"))
         {
+            state = Playerstate.Attack;
             anim.SetBool("isAttack",true);
             AttackStart?.Invoke();
         }
@@ -174,13 +249,19 @@ public class PlayerController : MonoBehaviour
                 anim.SetBool("isAttack", false);
                 AttackEnd?.Invoke();
                 attackTimer = 0;
+                state = Playerstate.Idle;
             }
         }
     }
 
-    public bool IsGround()
+    public void IsGround()
     {
+        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+        velocity.y += Physics.gravity.y * Time.deltaTime;
 
-        return false;
+        if (isGrounded && velocity.y < 0)
+        {
+            velocity.y = -2f;
+        }
     }
 }
