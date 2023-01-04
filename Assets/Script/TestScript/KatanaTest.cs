@@ -5,12 +5,6 @@ using UnityEngine;
 
 public class KatanaTest : MonoBehaviour
 {
-    //Collider col;
-
-    private void Start()
-    {
-        //col =GetComponentInChildren<Collider>();
-    }
     private void OnTriggerEnter(Collider other)
     {
         if(other.tag.Equals("Weapon"))

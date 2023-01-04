@@ -250,7 +250,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0.6006255, b: 1, a: 1}
+  m_Color: {r: 0.94628096, g: 0, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1953,7 +1953,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1922192240}
         m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
-        m_MethodName: RegainHelth
+        m_MethodName: RegainHealth
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3413,16 +3413,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  moveSpeed: 10
+  jumpSpeed: 10
   groundCheck: {fileID: 2052713437}
   groundDistance: 0.4
   groundMask:
     serializedVersion: 2
     m_Bits: 128
   velocity: {x: 0, y: 0, z: 0}
-  moveSpeed: 10
-  jumpSpeed: 10
+  MaxConcentrate: 500
   maxHealth: 500
   prevHealth: 0
+  loseHealth: 0
   currentHealth: 0
   concentrate: 0
 --- !u!1 &1960108493

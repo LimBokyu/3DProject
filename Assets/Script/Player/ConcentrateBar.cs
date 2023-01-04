@@ -5,9 +5,14 @@ using UnityEngine.UI;
 
 public class ConcentrateBar : MonoBehaviour
 {
+
+    //==================================
     public Slider slider;
+    // ㄴ> 게이지 슬라이더
     public Gradient gradient;
+    // ㄴ> 게이지 그라디에이션
     public Image fill;
+    // ㄴ> 게이지 이미지
     public void SetMax(int Concentrate)
     {
         slider.maxValue = Concentrate;

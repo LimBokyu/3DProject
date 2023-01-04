@@ -2,21 +2,45 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-enum Playerstate { Idle, Move, Attack}
+enum Playerstate { Idle, Move, Attack, Dodge, FreeSlash, Hurt, Dash}
 public class PlayerController : MonoBehaviour
 {
-    Camera cam;
+
+    //=========== PlayerState ==============
+    private Playerstate state;
+
+    private bool OnDamaged = false;
+    private bool OnFreeSlash = false;
+    //======================================
+
+    //============= Player UI ==============
     public HealthBar healthBar;
     public RegainBar RegainBar;
     public ConcentrateBar ConcentrateBar;
+    //======================================
 
+    //========- Weapon Collider ============
     public UnityEvent AttackStart;
     public UnityEvent AttackEnd;
+    //======================================
 
+    //============ Animation ===============
     private Animator anim;
+    //======================================
 
+    //=========== Player Camera ============
+    Camera cam;
+    //======================================
+
+    //========= Player MoveMent ============
     private CharacterController controller;
 
+    [SerializeField] private float moveSpeed;
+    [SerializeField] private float jumpSpeed;
+    //======================================
+
+
+    //===== GroundCheck And Veclocity ======
     public Transform groundCheck;
     public float groundDistance = 0.4f;
     public LayerMask groundMask;
@@ -24,34 +48,23 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded;
 
     public Vector3 velocity;
+    //=======================================
 
 
-    private Playerstate state;
-
+    //=============== Timer =================
     private float regainTimer = 0;
     private float attackTimer = 0;
-    private bool OnDamaged = false;
+    //=======================================
 
-    private bool OnFreeSlash = false;
-    private int MaxConcentrate = 500;
 
-    [SerializeField]
-    private float moveSpeed;
-
-    [SerializeField]
-    private float jumpSpeed;
-
-    [SerializeField]
-    private int maxHealth = 500;
-
-    [SerializeField]
-    private int prevHealth;
-
-    [SerializeField]
-    private int currentHealth;
-
-    [SerializeField]
-    private int concentrate;
+    //========== PlayerStatus ===============
+    [SerializeField] private int MaxConcentrate = 500;
+    [SerializeField] private int maxHealth = 500;
+    [SerializeField] private int prevHealth;
+    [SerializeField] private int loseHealth;
+    [SerializeField] private int currentHealth;
+    [SerializeField] private int concentrate;
+    //=======================================
 
     private void Awake()
     {
@@ -67,9 +80,9 @@ public class PlayerController : MonoBehaviour
 
         currentHealth = maxHealth;
         prevHealth = maxHealth;
+        loseHealth = maxHealth;
 
         concentrate = MaxConcentrate;
-
         SetHealth();
     }
 
@@ -91,16 +104,24 @@ public class PlayerController : MonoBehaviour
     }
     public void SetHealth()
     {
+        if(currentHealth > prevHealth)
+        {
+            prevHealth = currentHealth;
+            loseHealth = currentHealth;
+        }
+
         healthBar.SetMaxHealth(maxHealth);
         healthBar.SetHealth(currentHealth);
 
         RegainBar.SetMaxRegainHealth(maxHealth);
-        RegainBar.SetRegainHealth(prevHealth);
+        RegainBar.SetRegainHealth(loseHealth);
 
         ConcentrateBar.SetMax(MaxConcentrate);
         ConcentrateBar.SetGage(concentrate);
     }
 
+
+    // 테스트용 함수 테스트 끝나면 제거할것
     public void DamageTest()
     {
         if(Input.GetKeyDown(KeyCode.K))
@@ -111,6 +132,10 @@ public class PlayerController : MonoBehaviour
 
     public void Move()
     {
+        if(state == Playerstate.Dodge)
+        {
+            return;
+        }
         Vector3 forwardVec = new Vector3(Camera.main.transform.forward.x, 0f, Camera.main.transform.forward.z).normalized;
         Vector3 rightVec = new Vector3(Camera.main.transform.right.x, 0f, Camera.main.transform.right.z).normalized;
 
@@ -129,6 +154,11 @@ public class PlayerController : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        if(prevHealth != currentHealth)
+        {
+            loseHealth = prevHealth;
+        }
+
         prevHealth = currentHealth;
         currentHealth -= damage;
         OnDamaged = true;
@@ -176,13 +206,17 @@ public class PlayerController : MonoBehaviour
             }
             concentrate++;
         }
-        
     }
 
     public void Regain()
     {
         if(OnDamaged)
         {
+            if(prevHealth <= loseHealth)
+            {
+                loseHealth--;
+            }
+            
             regainTimer += Time.deltaTime;
             if(regainTimer > 3f)
             {
@@ -197,7 +231,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void RegainHelth()
+    public void RegainHealth()
     {
         Debug.Log("RegainHealth");
         int count = 0;
@@ -229,7 +263,6 @@ public class PlayerController : MonoBehaviour
         }
 
         controller.Move(Vector3.up * velocity.y * Time.deltaTime);
-
     }
 
     public void Attack()
@@ -244,7 +277,7 @@ public class PlayerController : MonoBehaviour
         if(anim.GetBool("isAttack") == true)
         {
             attackTimer += Time.deltaTime;
-            if(attackTimer > 1f)
+            if(attackTimer > 1.5f)
             {
                 anim.SetBool("isAttack", false);
                 AttackEnd?.Invoke();
@@ -264,4 +297,5 @@ public class PlayerController : MonoBehaviour
             velocity.y = -2f;
         }
     }
+
 }
