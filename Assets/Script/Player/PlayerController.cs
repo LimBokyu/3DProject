@@ -2,27 +2,35 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-enum Playerstate { Idle, Move, Attack, Dodge, FreeSlash, Hurt, Dash}
+using Cinemachine;
+using Unity.VisualScripting;
+
+enum Playerstate { Idle, Move, Attack, Dodge, BladeMode, Hurt, Dash}
 public class PlayerController : MonoBehaviour
 {
-
+    [Header("PlayerState")]
     //=========== PlayerState ==============
     private Playerstate state;
 
     private bool OnDamaged = false;
-    private bool OnFreeSlash = false;
+    private bool OnBladeMode = false;
     //======================================
+    [Space]
 
+    [Header("Player UI")]
     //============= Player UI ==============
     public HealthBar healthBar;
     public RegainBar RegainBar;
     public ConcentrateBar ConcentrateBar;
     //======================================
+    [Space]
 
+    [Header("Weapon Collider")]
     //========- Weapon Collider ============
     public UnityEvent AttackStart;
     public UnityEvent AttackEnd;
     //======================================
+    [Space]
 
     //============ Animation ===============
     private Animator anim;
@@ -30,25 +38,28 @@ public class PlayerController : MonoBehaviour
 
     //=========== Player Camera ============
     Camera cam;
+    public CinemachineFreeLook PlayerCamera;
+    private Vector3 OriginVec;
     //======================================
 
+    [Header("Player Movement")]
     //========= Player MoveMent ============
-    private CharacterController controller;
-
     [SerializeField] private float moveSpeed;
     [SerializeField] private float jumpSpeed;
+    [SerializeField] private CharacterController controller;
     //======================================
+    [Space]
 
 
-    //===== GroundCheck And Veclocity ======
+    [Header("GroundCheck Adn Velocity")]
+    //===== GroundCheck And Velocity ======
     public Transform groundCheck;
     public float groundDistance = 0.4f;
     public LayerMask groundMask;
-
     private bool isGrounded;
-
     public Vector3 velocity;
     //=======================================
+    [Space]
 
 
     //=============== Timer =================
@@ -57,6 +68,7 @@ public class PlayerController : MonoBehaviour
     //=======================================
 
 
+    [Header("PlayerStatus")]
     //========== PlayerStatus ===============
     [SerializeField] private int MaxConcentrate = 500;
     [SerializeField] private int maxHealth = 500;
@@ -77,13 +89,14 @@ public class PlayerController : MonoBehaviour
         cam = Camera.main;
         state = Playerstate.Idle;
         Cursor.lockState = CursorLockMode.Locked;
-
         currentHealth = maxHealth;
         prevHealth = maxHealth;
         loseHealth = maxHealth;
 
         concentrate = MaxConcentrate;
+        PlayerCamera.m_Priority = 15;
         SetHealth();
+
     }
 
     public void Update()
@@ -132,7 +145,7 @@ public class PlayerController : MonoBehaviour
 
     public void Move()
     {
-        if(state == Playerstate.Dodge)
+        if (state == Playerstate.BladeMode)
         {
             return;
         }
@@ -145,6 +158,8 @@ public class PlayerController : MonoBehaviour
         Vector3 moveVec = forwardVec * moveInput.z + rightVec * moveInput.x;
       
         controller.Move(moveVec * moveSpeed * Time.deltaTime);
+
+        
         if (moveVec.sqrMagnitude != 0)
         {
             transform.forward = Vector3.Lerp(transform.forward, moveVec, 0.8f);
@@ -174,28 +189,38 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             Debug.Log("Tab");
-            if (OnFreeSlash)
+            if (OnBladeMode)
             {
                 Debug.Log("자유참격Off");
-                OnFreeSlash = false;
+                state = Playerstate.Idle;
+                OnBladeMode = false;
+                PlayerCamera.m_Priority = 15;
+                transform.rotation = Quaternion.Euler(0, transform.rotation.y, 0).normalized;
             }
             else
             {
                 Debug.Log("자유참격On");
-                OnFreeSlash = true;
+                state = Playerstate.BladeMode;
+                OnBladeMode = true;
+                PlayerCamera.m_Priority = 5;
             }
+
+            
         }
     }
     public void TestConcentrate()
     {
         if(concentrate == 0)
         {
-            Debug.Log("집중도 -> 0");
-            OnFreeSlash = false;
+            state = Playerstate.Idle;
+            OnBladeMode = false;
+            PlayerCamera.m_Priority = 15;
+            transform.rotation = Quaternion.Euler(0,transform.rotation.y,0).normalized;
         }
 
-        if(OnFreeSlash)
+        if(OnBladeMode)
         {
+            transform.rotation = cam.transform.rotation;
             concentrate--;
         }
         else
