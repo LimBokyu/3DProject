@@ -4,16 +4,17 @@ using UnityEngine;
 using UnityEngine.Events;
 using Cinemachine;
 using Unity.VisualScripting;
+using UnityEditor.UIElements;
 
-enum Playerstate { Idle, Move, Attack, Dodge, BladeMode, Hurt, Dash}
+enum Playerstate { Idle, Move, Attack, Dodge, BladeMode, Hurt, Dash }
 public class PlayerController : MonoBehaviour
 {
     [Header("PlayerState")]
     //=========== PlayerState ==============
     private Playerstate state;
-
     private bool OnDamaged = false;
     private bool OnBladeMode = false;
+    private bool BladeAttack = false;
     //======================================
     [Space]
 
@@ -22,6 +23,7 @@ public class PlayerController : MonoBehaviour
     public HealthBar healthBar;
     public RegainBar RegainBar;
     public ConcentrateBar ConcentrateBar;
+    public Transform CutPlane;
     //======================================
     [Space]
 
@@ -29,6 +31,8 @@ public class PlayerController : MonoBehaviour
     //========- Weapon Collider ============
     public UnityEvent AttackStart;
     public UnityEvent AttackEnd;
+    public UnityEvent BladeStart;
+    public UnityEvent BladeEnd;
     //======================================
     [Space]
 
@@ -39,7 +43,6 @@ public class PlayerController : MonoBehaviour
     //=========== Player Camera ============
     Camera cam;
     public CinemachineFreeLook PlayerCamera;
-    private Vector3 OriginVec;
     //======================================
 
     [Header("Player Movement")]
@@ -96,7 +99,6 @@ public class PlayerController : MonoBehaviour
         concentrate = MaxConcentrate;
         PlayerCamera.m_Priority = 15;
         SetHealth();
-
     }
 
     public void Update()
@@ -108,7 +110,7 @@ public class PlayerController : MonoBehaviour
         SetHealth();
         Regain();
         IsGround();
-        FreeSlashMod();
+        BladeMode();
     }
 
     public void FixedUpdate()
@@ -141,6 +143,11 @@ public class PlayerController : MonoBehaviour
         {
             TakeDamage(150);
         }
+
+        if(Input.GetKeyDown(KeyCode.J)) 
+        {
+            concentrate = MaxConcentrate;
+        }
     }
 
     public void Move()
@@ -159,7 +166,6 @@ public class PlayerController : MonoBehaviour
       
         controller.Move(moveVec * moveSpeed * Time.deltaTime);
 
-        
         if (moveVec.sqrMagnitude != 0)
         {
             transform.forward = Vector3.Lerp(transform.forward, moveVec, 0.8f);
@@ -184,41 +190,57 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void FreeSlashMod()
+    public void BladeMode()
     {
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             Debug.Log("Tab");
-            if (OnBladeMode)
-            {
-                Debug.Log("자유참격Off");
-                state = Playerstate.Idle;
-                OnBladeMode = false;
-                PlayerCamera.m_Priority = 15;
-                transform.rotation = Quaternion.Euler(0, transform.rotation.y, 0).normalized;
-            }
-            else
-            {
-                Debug.Log("자유참격On");
-                state = Playerstate.BladeMode;
-                OnBladeMode = true;
-                PlayerCamera.m_Priority = 5;
-            }
+            ModeChanger(OnBladeMode);
+        }
 
-            
+        CutPlane.Rotate(0f,0f, Input.GetAxis("Horizontal")* Time.deltaTime * 100);
+
+        if(Input.GetButtonDown("Fire1"))
+        {
+            BladeStart?.Invoke();
+            BladeAttack = true;
+        }
+
+        if(BladeAttack)
+        {
+            attackTimer += Time.deltaTime;
+            if(attackTimer >= 0.15f)
+            {
+                BladeEnd?.Invoke();
+                attackTimer= 0;
+            }
         }
     }
+
+    public void ModeChanger(bool value)
+    {
+        OnBladeMode = !value;
+        state = OnBladeMode ? Playerstate.BladeMode : Playerstate.Idle;
+        PlayerCamera.m_Priority = OnBladeMode ? 5 : 15;
+        CutPlane.gameObject.SetActive(OnBladeMode);
+        CutPlane.localEulerAngles = Vector3.zero;
+        string debug = OnBladeMode ? "BladeModeOn" : "BladeModeOff";
+        Debug.Log(debug);
+        if (!OnBladeMode)
+        {
+            transform.rotation = Quaternion.Euler(0, transform.rotation.y, 0).normalized;
+        }
+    }
+
     public void TestConcentrate()
     {
         if(concentrate == 0)
         {
-            state = Playerstate.Idle;
-            OnBladeMode = false;
-            PlayerCamera.m_Priority = 15;
+            ModeChanger(OnBladeMode);
             transform.rotation = Quaternion.Euler(0,transform.rotation.y,0).normalized;
         }
 
-        if(OnBladeMode)
+        if (OnBladeMode)
         {
             transform.rotation = cam.transform.rotation;
             concentrate--;
@@ -292,6 +314,11 @@ public class PlayerController : MonoBehaviour
 
     public void Attack()
     {
+        if (state == Playerstate.Attack && state == Playerstate.BladeMode)
+        {
+            return;
+        }
+
         if(Input.GetButtonDown("Fire1") && !anim.GetBool("isAttack"))
         {
             state = Playerstate.Attack;
