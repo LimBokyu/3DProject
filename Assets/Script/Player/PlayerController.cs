@@ -168,7 +168,7 @@ public class PlayerController : MonoBehaviour
 
         if (moveVec.sqrMagnitude != 0)
         {
-            transform.forward = Vector3.Lerp(transform.forward, moveVec);
+            transform.forward = Vector3.Lerp(transform.forward, moveVec, 0.8f);
         }
     }
 
@@ -200,19 +200,24 @@ public class PlayerController : MonoBehaviour
 
         CutPlane.Rotate(0f,0f, Input.GetAxis("Horizontal")* Time.deltaTime * 100);
 
-        if(Input.GetButtonDown("Fire1"))
-        {
-            BladeStart?.Invoke();
-            BladeAttack = true;
-        }
 
-        if(BladeAttack)
+        if (state == Playerstate.BladeMode)
         {
-            attackTimer += Time.deltaTime;
-            if(attackTimer >= 0.15f)
+            if (Input.GetButtonDown("Fire1"))
             {
-                BladeEnd?.Invoke();
-                attackTimer= 0;
+                BladeStart?.Invoke();
+                BladeAttack = true;
+            }
+
+            if (BladeAttack)
+            {
+                attackTimer += Time.deltaTime;
+                if (attackTimer >= 0.15f)
+                {
+                    BladeEnd?.Invoke();
+                    attackTimer = 0;
+                    BladeAttack = !BladeAttack;
+                }
             }
         }
     }
@@ -315,27 +320,27 @@ public class PlayerController : MonoBehaviour
 
     public void Attack()
     {
-        if (state == Playerstate.Attack && state == Playerstate.BladeMode)
+        if (state == Playerstate.BladeMode)
         {
             return;
         }
 
-        if(Input.GetButtonDown("Fire1") && !anim.GetBool("isAttack"))
+        if(Input.GetButtonDown("Fire1") && state != Playerstate.Attack)
         {
             state = Playerstate.Attack;
             anim.SetBool("isAttack",true);
             AttackStart?.Invoke();
         }
 
-        if(anim.GetBool("isAttack") == true)
+        if(state == Playerstate.Attack)
         {
             attackTimer += Time.deltaTime;
-            if(attackTimer > 1.5f)
+            if(attackTimer >= 1.5f)
             {
                 anim.SetBool("isAttack", false);
+                state = Playerstate.Idle;
                 AttackEnd?.Invoke();
                 attackTimer = 0;
-                state = Playerstate.Idle;
             }
         }
     }
