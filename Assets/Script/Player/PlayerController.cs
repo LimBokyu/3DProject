@@ -168,7 +168,7 @@ public class PlayerController : MonoBehaviour
 
         if (moveVec.sqrMagnitude != 0)
         {
-            transform.forward = Vector3.Lerp(transform.forward, moveVec, 0.8f);
+            transform.forward = Vector3.Lerp(transform.forward, moveVec);
         }
     }
 
@@ -224,6 +224,7 @@ public class PlayerController : MonoBehaviour
         PlayerCamera.m_Priority = OnBladeMode ? 5 : 15;
         CutPlane.gameObject.SetActive(OnBladeMode);
         CutPlane.localEulerAngles = Vector3.zero;
+        attackTimer = 0;
         string debug = OnBladeMode ? "BladeModeOn" : "BladeModeOff";
         Debug.Log(debug);
         if (!OnBladeMode)
