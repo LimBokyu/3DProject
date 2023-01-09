@@ -23,6 +23,9 @@ namespace Player
         //=========== PlayerAttack =============
         private Dictionary<string, AttackTime> MeleeAttack;
         private int AttackCount = 0;
+        private bool Combo = false;
+        private string prevkey;
+        private string key = "melee";
         //======================================
 
         [Header("Player UI")]
@@ -243,9 +246,9 @@ namespace Player
             }
         }
 
-        public void ModeChanger(bool value)
+        public void ModeChanger(bool BladeMode)
         {
-            OnBladeMode = !value;
+            OnBladeMode = !BladeMode;
             state = OnBladeMode ? Playerstate.BladeMode : Playerstate.Idle;
             PlayerCamera.m_Priority = OnBladeMode ? 5 : 15;
             CutPlane.gameObject.SetActive(OnBladeMode);
@@ -346,18 +349,44 @@ namespace Player
                 return;
             }
 
-            string key = "melee";
-
-            if (Input.GetButtonDown("Fire1") && !anim.GetBool("isAttack"))
+            if(state == Playerstate.Idle)
             {
-                state = Playerstate.Attack;
-                AttackCount++;
-                anim.SetBool("isAttack", true);
+                key = "melee";
             }
+
+            if (AttackCount == 0)
+            {
+                if (Input.GetButtonDown("Fire1"))
+                {
+                    state = Playerstate.Attack;
+                    AttackCount = 1;
+                    key += AttackCount.ToString();
+                    anim.SetBool(key, true);
+                }
+            }
+
+
+            if (Combo)
+            {
+                key = "melee";
+                if (AttackCount >= 3)
+                {
+                    AttackCount = 1;
+                }
+                else
+                {
+                    AttackCount += 1;
+                }
+                key += AttackCount.ToString();
+                attackTimer = 0;
+                anim.SetBool(key, true);
+                anim.SetBool(prevkey, false);
+                Combo = false;
+            }
+            
 
             if (state == Playerstate.Attack)
             {
-                key += AttackCount.ToString();
                 attackTimer += Time.deltaTime;
                 AttackTime attack;
                 MeleeAttack.TryGetValue(key,out attack);
@@ -366,18 +395,27 @@ namespace Player
                 {
                     AttackStart?.Invoke();
                 }
-                else if(attackTimer >= attack.GetEnd() && attackTimer <= 1.5f)
+                else if(attackTimer >= attack.GetEnd() && attackTimer <= 1.4f)
                 {
                     AttackEnd?.Invoke();
+                    prevkey = key;
+                    CheckCombo();
                 }
                 else if(attackTimer > 1.5f)
                 {
-                    anim.SetBool("isAttack", false);
+                    anim.SetBool(key, false);
                     state = Playerstate.Idle;
                     attackTimer = 0;
                     AttackCount = 0;
                 }
+            }
+        }
 
+        private void CheckCombo()
+        {
+            if (Input.GetButtonDown("Fire1"))
+            {
+                Combo = true;
             }
         }
 
