@@ -636,7 +636,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 225643534}
-  m_LocalRotation: {x: 0.07919669, y: -1e-45, z: -0, w: 0.996859}
+  m_LocalRotation: {x: 0.07919669, y: 1e-45, z: -0, w: 0.996859}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1750,7 +1750,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 716829497}
-  m_LocalRotation: {x: 0.06585696, y: -0.0000000042922568, z: 2.8329003e-10, w: 0.9978291}
+  m_LocalRotation: {x: 0.06585696, y: 0.000000004292257, z: -2.8329006e-10, w: 0.9978291}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2071,7 +2071,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0.059259888, y: 0.04972591, z: -0.0029556216, w: 0.99699897}
+  m_LocalRotation: {x: 0.059259888, y: 0.049725916, z: -0.002955622, w: 0.99699897}
   m_LocalPosition: {x: 0, y: 2.5, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2100,7 +2100,7 @@ MonoBehaviour:
   m_BlendUpdateMethod: 1
   m_DefaultBlend:
     m_Style: 1
-    m_Time: 1
+    m_Time: 0.05
     m_CustomCurve:
       serializedVersion: 2
       m_Curve: []
@@ -2163,8 +2163,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 0
   serializedVersion: 2
-  m_Size: {x: 0.0824699, y: 0.08778795, z: 1}
-  m_Center: {x: 0.00015066713, y: 0.00768584, z: 0.65}
+  m_Size: {x: 0.0824699, y: 0.21032336, z: 1.0424976}
+  m_Center: {x: 0.00015066461, y: 0.004622256, z: 0.6712443}
 --- !u!1 &1084942038
 GameObject:
   m_ObjectHideFlags: 0
@@ -3089,7 +3089,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1571597034}
-  m_LocalRotation: {x: 0.059259877, y: 0.049725916, z: -0.002955621, w: 0.99699897}
+  m_LocalRotation: {x: 0.059259877, y: 0.04972593, z: -0.002955622, w: 0.99699897}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3801,7 +3801,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1837188093}
-  m_LocalRotation: {x: 0.09254138, y: -0.000000004283138, z: 3.980756e-10, w: 0.9957089}
+  m_LocalRotation: {x: 0.092541374, y: 0.000000004283136, z: -3.9807543e-10, w: 0.9957089}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -4049,6 +4049,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b90e341b495025468fa4217ea6a2c16, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  timemanager: {fileID: 2009738534}
   healthBar: {fileID: 1985485802}
   RegainBar: {fileID: 1094199167}
   ConcentrateBar: {fileID: 1903611758}
@@ -4113,10 +4114,11 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  CineMachine: {fileID: 963194229}
   PlayerCamera: {fileID: 1098191123}
   moveSpeed: 10
   jumpSpeed: 10
-  controller: {fileID: 0}
+  controller: {fileID: 1922192239}
   groundCheck: {fileID: 2052713437}
   groundDistance: 0.4
   groundMask:
@@ -4478,6 +4480,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2009738532}
   - component: {fileID: 2009738533}
+  - component: {fileID: 2009738534}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -4512,6 +4515,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8ac8ed56d7db549a7697bd6befd73a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2009738534
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2009738531}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ac67eebc8d985641a4aa049f8f5c8f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SlowDownFactor: 0.05
 --- !u!1 &2010152715
 GameObject:
   m_ObjectHideFlags: 3
@@ -4804,9 +4820,9 @@ MonoBehaviour:
   m_YAxis:
     Value: 0.5
     m_SpeedMode: 0
-    m_MaxSpeed: 2
-    m_AccelTime: 0.2
-    m_DecelTime: 0.1
+    m_MaxSpeed: 40
+    m_AccelTime: 0.01
+    m_DecelTime: 0.005
     m_InputAxisName: Mouse Y
     m_InputAxisValue: 0
     m_InvertInput: 1
@@ -4828,9 +4844,9 @@ MonoBehaviour:
   m_XAxis:
     Value: 0
     m_SpeedMode: 0
-    m_MaxSpeed: 300
-    m_AccelTime: 0.1
-    m_DecelTime: 0.1
+    m_MaxSpeed: 4000
+    m_AccelTime: 0.05
+    m_DecelTime: 0.005
     m_InputAxisName: Mouse X
     m_InputAxisValue: 0
     m_InvertInput: 0

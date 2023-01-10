@@ -17,6 +17,8 @@ namespace Player
         private bool OnDamaged = false;
         private bool OnBladeMode = false;
         private bool BladeAttack = false;
+        private bool Moving = false;
+        public TimeManager timemanager;
         //======================================
         [Space]
 
@@ -24,6 +26,7 @@ namespace Player
         private Dictionary<string, AttackTime> MeleeAttack;
         private int AttackCount = 0;
         private bool Combo = false;
+        private bool CallNextAttack = false;
         private string prevkey;
         private string key = "melee";
         //======================================
@@ -52,6 +55,7 @@ namespace Player
 
         //=========== Player Camera ============
         Camera cam;
+        public CinemachineBrain    CineMachine;
         public CinemachineFreeLook PlayerCamera;
         //======================================
 
@@ -99,6 +103,7 @@ namespace Player
 
         public void Start()
         {
+
             cam = Camera.main;
             state = Playerstate.Idle;
             Cursor.lockState = CursorLockMode.Locked;
@@ -122,6 +127,7 @@ namespace Player
             Regain();
             IsGround();
             BladeMode();
+            TestConcentrate();
         }
 
         private void SetAttack()
@@ -129,18 +135,13 @@ namespace Player
             MeleeAttack = new Dictionary<string, AttackTime>();
             string name;
             name = "melee1";
-            MeleeAttack.Add(name, new AttackTime(name, 0.2f, 0.45f));
+            MeleeAttack.Add(name, new AttackTime(name, 0.2f, 0.7f, 1.15f));
             name = "melee2";
-            MeleeAttack.Add(name, new AttackTime(name, 0.2f, 0.45f));
+            MeleeAttack.Add(name, new AttackTime(name, 0.2f, 0.7f, 1.05f));
             name = "melee3";
-            MeleeAttack.Add(name, new AttackTime(name, 0.2f, 0.45f));
+            MeleeAttack.Add(name, new AttackTime(name, 0.02f, 1.01f, 1.3f));
         }
 
-
-        public void FixedUpdate()
-        {
-            TestConcentrate();
-        }
         public void SetHealth()
         {
             if (currentHealth > prevHealth)
@@ -176,8 +177,11 @@ namespace Player
 
         public void Move()
         {
-            if (state == Playerstate.BladeMode)
+            string RightVec = "Horizontal";
+            string FowardVec = "Vertical";
+            if (state == Playerstate.BladeMode || state == Playerstate.Attack)
             {
+                Moving = false;
                 return;
             }
             Vector3 forwardVec = new Vector3(Camera.main.transform.forward.x, 0f, Camera.main.transform.forward.z).normalized;
@@ -194,6 +198,19 @@ namespace Player
             {
                 transform.forward = Vector3.Lerp(transform.forward, moveVec, 0.8f);
             }
+            Moving = moveVec.sqrMagnitude != 0 ? true : false;
+
+            MoveState();
+            anim.SetFloat(RightVec, moveVec.x);
+            anim.SetFloat(FowardVec, moveVec.z);
+
+
+        }
+
+        private void MoveState()
+        {
+            state = Moving ? Playerstate.Move : Playerstate.Idle ;
+            anim.SetBool("isMoving", Moving);
         }
 
 
@@ -222,7 +239,7 @@ namespace Player
                 ModeChanger(OnBladeMode);
             }
 
-            CutPlane.Rotate(0f, 0f, Input.GetAxis("Horizontal") * Time.deltaTime * 100);
+            CutPlane.Rotate(0f, 0f, Input.GetAxisRaw("Horizontal") * Time.unscaledDeltaTime * 100);
 
 
             if (state == Playerstate.BladeMode)
@@ -235,7 +252,7 @@ namespace Player
 
                 if (BladeAttack)
                 {
-                    attackTimer += Time.deltaTime;
+                    attackTimer += Time.unscaledDeltaTime;
                     if (attackTimer >= 0.15f)
                     {
                         BladeEnd?.Invoke();
@@ -249,16 +266,26 @@ namespace Player
         public void ModeChanger(bool BladeMode)
         {
             OnBladeMode = !BladeMode;
+            // 원래의 OnBladeMode의 반대되는 값을 OnBladeMode에 입력하고
+            // OnBladeMode의 True/False 값을 기준으로 BladeMode/Idle 을 구분할 값을 변경
             state = OnBladeMode ? Playerstate.BladeMode : Playerstate.Idle;
             PlayerCamera.m_Priority = OnBladeMode ? 5 : 15;
             CutPlane.gameObject.SetActive(OnBladeMode);
             CutPlane.localEulerAngles = Vector3.zero;
+            CineMachine.m_DefaultBlend = OnBladeMode ?
+                new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.EaseInOut, 0.02f) :
+                new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.EaseInOut, 0.5f)  ;
             attackTimer = 0;
             string debug = OnBladeMode ? "BladeModeOn" : "BladeModeOff";
             Debug.Log(debug);
             if (!OnBladeMode)
             {
                 transform.rotation = Quaternion.Euler(0, transform.rotation.y, 0).normalized;
+                timemanager.SlowMotionOut();
+            }
+            else
+            {
+                timemanager.SlowMotion();
             }
         }
 
@@ -272,8 +299,8 @@ namespace Player
 
             if (OnBladeMode)
             {
-                transform.rotation = cam.transform.rotation;
-                concentrate--;
+                transform.rotation = cam.transform.rotation.normalized;
+                //concentrate--;
             }
             else
             {
@@ -358,6 +385,7 @@ namespace Player
             {
                 if (Input.GetButtonDown("Fire1"))
                 {
+                    key = "melee";
                     state = Playerstate.Attack;
                     AttackCount = 1;
                     key += AttackCount.ToString();
@@ -366,7 +394,7 @@ namespace Player
             }
 
 
-            if (Combo)
+            if (CallNextAttack)
             {
                 key = "melee";
                 if (AttackCount >= 3)
@@ -382,6 +410,7 @@ namespace Player
                 anim.SetBool(key, true);
                 anim.SetBool(prevkey, false);
                 Combo = false;
+                CallNextAttack = false;
             }
             
 
@@ -390,18 +419,30 @@ namespace Player
                 attackTimer += Time.deltaTime;
                 AttackTime attack;
                 MeleeAttack.TryGetValue(key,out attack);
+                prevkey = key;
 
-                if (attackTimer >= attack.GetStart() && attackTimer < attack.GetEnd())
+                if(attackTimer >= attack.GetStart() &&
+                   attackTimer <  attack.GetEndAnim())
                 {
-                    AttackStart?.Invoke();
-                }
-                else if(attackTimer >= attack.GetEnd() && attackTimer <= 1.4f)
-                {
-                    AttackEnd?.Invoke();
-                    prevkey = key;
                     CheckCombo();
                 }
-                else if(attackTimer > 1.5f)
+
+                if (attackTimer >= attack.GetStart() &&
+                    attackTimer <  attack.GetEnd())
+                {
+                    AttackStart?.Invoke();
+                    
+                }
+                else if(attackTimer >= attack.GetEnd() &&
+                        attackTimer <= attack.GetEndAnim())
+                {
+                    AttackEnd?.Invoke();
+                    if(Combo)
+                    {
+                        CallNextAttack = true;
+                    }
+                }
+                else if(attackTimer > attack.GetEndAnim())
                 {
                     anim.SetBool(key, false);
                     state = Playerstate.Idle;
@@ -437,12 +478,14 @@ namespace Player
         private string name;
         private float startattack;
         private float endattack;
+        private float endanim;
 
-        public AttackTime(string name, float Start, float End)
+        public AttackTime(string name, float Start, float End, float endanim)
         {
             this.name = name;
             this.startattack = Start;
             this.endattack = End;
+            this.endanim = endanim;
         }
 
         public float GetStart()
@@ -453,6 +496,11 @@ namespace Player
         public float GetEnd()
         {
             return endattack;
+        }
+
+        public float GetEndAnim()
+        {
+            return endanim;
         }
     }
 }
