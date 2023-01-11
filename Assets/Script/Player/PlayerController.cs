@@ -59,6 +59,7 @@ namespace Player
         Camera cam;
         public CinemachineBrain    CineMachine;
         public CinemachineFreeLook PlayerCamera;
+        public CinemachineFreeLook zoomCamera;
         //======================================
         [Space]
 
@@ -190,14 +191,8 @@ namespace Player
                 Moving = false;
                 return;
             }
-            Vector3 forwardVec = new Vector3(Camera.main.transform.forward.x, 0f, Camera.main.transform.forward.z).normalized;
-            Vector3 rightVec = new Vector3(Camera.main.transform.right.x, 0f, Camera.main.transform.right.z).normalized;
 
-            Vector3 moveInput = Vector3.forward * Input.GetAxis("Vertical") + Vector3.right * Input.GetAxis("Horizontal");
-            if (moveInput.sqrMagnitude > 1f) moveInput.Normalize();
-
-            Vector3 moveVec = forwardVec * moveInput.z + rightVec * moveInput.x;
-
+            Vector3 moveVec = InputMove();
             controller.Move(moveVec * moveSpeed * Time.deltaTime);
 
             if (moveVec.sqrMagnitude != 0)
@@ -210,7 +205,19 @@ namespace Player
             anim.SetFloat(RightVec, moveVec.x);
             anim.SetFloat(FowardVec, moveVec.z);
 
+        }
 
+        private Vector3 InputMove()
+        {
+            Vector3 forwardVec = new Vector3(Camera.main.transform.forward.x, 0f, Camera.main.transform.forward.z).normalized;
+            Vector3 rightVec = new Vector3(Camera.main.transform.right.x, 0f, Camera.main.transform.right.z).normalized;
+
+            Vector3 moveInput = Vector3.forward * Input.GetAxis("Vertical") + Vector3.right * Input.GetAxis("Horizontal");
+            if (moveInput.sqrMagnitude > 1f) moveInput.Normalize();
+
+            Vector3 moveVec = forwardVec * moveInput.z + rightVec * moveInput.x;
+
+            return moveVec;
         }
 
         private void MoveState()
@@ -239,7 +246,7 @@ namespace Player
 
         public void BladeMode()
         {
-            if (Input.GetKeyDown(KeyCode.Tab))
+            if (Input.GetKeyDown(KeyCode.Tab) && state == Playerstate.Idle)
             {
                 Debug.Log("Tab");
                 ModeChanger(OnBladeMode);
@@ -254,6 +261,7 @@ namespace Player
                 {
                     BladeStart?.Invoke();
                     BladeAttack = true;
+                    
                 }
 
                 if (BladeAttack)
@@ -281,6 +289,7 @@ namespace Player
             CineMachine.m_DefaultBlend = OnBladeMode ?
                 new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.EaseInOut, 0.02f) :
                 new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.EaseInOut, 0.5f)  ;
+            anim.SetBool("BladeMode",OnBladeMode);
             attackTimer = 0;
             string debug = OnBladeMode ? "BladeModeOn" : "BladeModeOff";
             Debug.Log(debug);
@@ -403,6 +412,12 @@ namespace Player
             if (CallNextAttack)
             {
                 key = "melee";
+                Vector3 moveVec = InputMove();
+                if (moveVec.sqrMagnitude != 0)
+                {
+                    transform.forward = Vector3.Lerp(transform.forward, moveVec, 0.8f);
+                }
+
                 if (AttackCount >= 3)
                 {
                     AttackCount = 1;
