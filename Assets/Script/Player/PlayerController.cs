@@ -18,7 +18,6 @@ namespace Player
         private bool OnBladeMode = false;
         private bool BladeAttack = false;
         private bool Moving = false;
-        public TimeManager timemanager;
         //======================================
         [Space]
 
@@ -36,12 +35,11 @@ namespace Player
         public HealthBar healthBar;
         public RegainBar RegainBar;
         public ConcentrateBar ConcentrateBar;
-        public Transform CutPlane;
         //======================================
         [Space]
 
         [Header("Weapon Collider")]
-        //========- Weapon Collider ============
+        //========= Weapon Collider ============
         public UnityEvent AttackStart;
         public UnityEvent AttackEnd;
         public UnityEvent BladeStart;
@@ -49,15 +47,20 @@ namespace Player
         //======================================
         [Space]
 
-        //============ Animation ===============
-        private Animator anim;
+        [Header("BladeMode")]
+        //============= BladeMode ==============
+        public TimeManager timemanager;
+        public Transform CutPlane;
         //======================================
+        [Space]
 
+        [Header("Camera")]
         //=========== Player Camera ============
         Camera cam;
         public CinemachineBrain    CineMachine;
         public CinemachineFreeLook PlayerCamera;
         //======================================
+        [Space]
 
         [Header("Player Movement")]
         //========= Player MoveMent ============
@@ -78,6 +81,9 @@ namespace Player
         //=======================================
         [Space]
 
+        //============ Animation ===============
+        private Animator anim;
+        //======================================
 
         //=============== Timer =================
         private float regainTimer = 0;
