@@ -31,7 +31,6 @@ public class KatanaCollider : MonoBehaviour
 
     private void OnTriggerEnter(Collider collision)
     {
-        Debug.Log("KatanaTest");
         if(collision.tag.Equals("Enemy"))
         {
             Debug.Log("Katana On Hit Enemy!");

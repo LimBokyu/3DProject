@@ -126,14 +126,29 @@ namespace Player
 
         public void Update()
         {
-            Move();
-            Jump();
-            Attack();
+            switch (state)
+            {
+                case Playerstate.Idle:
+                    BladeMode();
+                    Move();
+                    Attack();
+                    break;
+                case Playerstate.Move:
+                    Move();
+                    Jump();
+                    break;
+                case Playerstate.BladeMode:
+                    BladeMode();
+                    break;
+                case Playerstate.Attack:
+                    Attack();
+                    break;
+            }
+            
             DamageTest();
             SetHealth();
             Regain();
             IsGround();
-            BladeMode();
             TestConcentrate();
         }
 
@@ -184,8 +199,7 @@ namespace Player
 
         public void Move()
         {
-            string RightVec = "Horizontal";
-            string FowardVec = "Vertical";
+            string MoveSpeed = "MoveSpeed";
             if (state == Playerstate.BladeMode || state == Playerstate.Attack)
             {
                 Moving = false;
@@ -202,8 +216,7 @@ namespace Player
             Moving = moveVec.sqrMagnitude != 0 ? true : false;
 
             MoveState();
-            anim.SetFloat(RightVec, moveVec.x);
-            anim.SetFloat(FowardVec, moveVec.z);
+            anim.SetFloat(MoveSpeed,moveVec.sqrMagnitude);
 
         }
 
@@ -246,7 +259,7 @@ namespace Player
 
         public void BladeMode()
         {
-            if (Input.GetKeyDown(KeyCode.Tab) && state == Playerstate.Idle)
+            if (Input.GetKeyDown(KeyCode.Tab))
             {
                 Debug.Log("Tab");
                 ModeChanger(OnBladeMode);
@@ -378,6 +391,7 @@ namespace Player
                 if (Input.GetButtonDown("Jump") && isGrounded)
                 {
                     velocity.y = jumpSpeed;
+                    anim.SetBool("isJump", true);
                 }
             }
 
@@ -386,7 +400,7 @@ namespace Player
 
         public void Attack()
         {
-            if (state == Playerstate.BladeMode)
+            if (state == Playerstate.BladeMode || state == Playerstate.Move)
             {
                 return;
             }
@@ -489,6 +503,7 @@ namespace Player
             if (isGrounded && velocity.y < 0)
             {
                 velocity.y = -2f;
+                anim.SetBool("isJump", false);
             }
         }
 
