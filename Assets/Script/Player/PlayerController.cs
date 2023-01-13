@@ -60,6 +60,8 @@ namespace Player
         public CinemachineBrain    CineMachine;
         public CinemachineFreeLook PlayerCamera;
         public CinemachineFreeLook zoomCamera;
+        public GameObject          zoomFollower;
+        public GameObject          normalFollower;
         //======================================
         [Space]
 
@@ -132,6 +134,7 @@ namespace Player
                     BladeMode();
                     Move();
                     Attack();
+                    Jump();
                     break;
                 case Playerstate.Move:
                     Move();
@@ -303,6 +306,7 @@ namespace Player
                 new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.EaseInOut, 0.02f) :
                 new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.EaseInOut, 0.5f)  ;
             anim.SetBool("BladeMode",OnBladeMode);
+            cam.transform.rotation = transform.rotation;
             attackTimer = 0;
             string debug = OnBladeMode ? "BladeModeOn" : "BladeModeOff";
             Debug.Log(debug);
@@ -315,6 +319,7 @@ namespace Player
             {
                 timemanager.SlowMotion();
             }
+
         }
 
         public void TestConcentrate()

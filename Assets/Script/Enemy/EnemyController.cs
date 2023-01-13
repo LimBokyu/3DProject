@@ -4,33 +4,74 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AI;
 
-enum EnemyState { Idle, Move, Attack, Alert, Patrol, MoveBack, Dead}
+enum EnemyState { Idle, Attack, Alert, Patrol, MoveBack, Dead, Search, Chase}
 public class EnemyController : MonoBehaviour
 {
     [SerializeField]
     private int m_HP;
 
+    private float moveSpeed = 500f;
+
     private EnemyState state;
-    private Transform transform;
+    private Transform trans;
     private NavMeshAgent nav;
 
+    private Animator anim;
+
+    private bool isMoving = false;
     private void Start()
     {
         m_HP = 100;
         state = EnemyState.Idle;
-        transform = GetComponent<Transform>();  
+        trans = GetComponent<Transform>();  
         nav = GetComponent<NavMeshAgent>();
+        anim = GetComponent<Animator>();    
     }
 
     private void Update()
     {
-        Move();
+        switch (state)
+            
+        {
+            case EnemyState.Dead:
+                Dead();
+                break;
+
+            case EnemyState.Chase:
+                Move();
+                break;
+
+            case EnemyState.Idle:
+                break;
+
+            case EnemyState.Alert:
+                break;
+
+            case EnemyState.Attack:
+                Attack();
+                break;
+
+            case EnemyState.Patrol:
+                Move();
+                break;
+
+            case EnemyState.Search:
+                Move();
+                break;
+
+            case EnemyState.MoveBack:
+                Move();
+                break;
+        }
+
         Alive();
     }
 
     private void Move()
     {
-        
+        isMoving = true;
+        anim.SetBool("isMoving", isMoving);
+        transform.Translate(transform.forward * Time.deltaTime * moveSpeed);
     }
 
     private void Alive()
