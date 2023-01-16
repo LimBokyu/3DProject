@@ -57,11 +57,13 @@ namespace Player
         [Header("Camera")]
         //=========== Player Camera ============
         Camera cam;
-        public CinemachineBrain    CineMachine;
+        public CinemachineBrain CineMachine;
         public CinemachineFreeLook PlayerCamera;
-        public CinemachineFreeLook zoomCamera;
-        public GameObject          zoomFollower;
-        public GameObject          normalFollower;
+        private CinemachineComposer[] composers;
+        private float normalFov = 30;
+        private float zoomFov = 15;
+        public Vector3 zoomOffset;
+        private Vector3 normalOffset;
         //======================================
         [Space]
 
@@ -77,10 +79,10 @@ namespace Player
         [Header("GroundCheck Adn Velocity")]
         //===== GroundCheck And Velocity ======
         public Transform groundCheck;
-        public float groundDistance = 0.4f;
+        private float groundDistance = 0.4f;
         public LayerMask groundMask;
         private bool isGrounded;
-        public Vector3 velocity;
+        private Vector3 velocity;
         //=======================================
         [Space]
 
@@ -92,7 +94,6 @@ namespace Player
         private float regainTimer = 0;
         private float attackTimer = 0;
         //=======================================
-
 
         [Header("PlayerStatus")]
         //========== PlayerStatus ===============
@@ -112,19 +113,41 @@ namespace Player
 
         public void Start()
         {
-
-            cam = Camera.main;
             state = Playerstate.Idle;
             Cursor.lockState = CursorLockMode.Locked;
-            currentHealth = maxHealth;
-            prevHealth = maxHealth;
-            loseHealth = maxHealth;
-
-            concentrate = MaxConcentrate;
-            PlayerCamera.m_Priority = 15;
+            CameraSet();
+            PlayerUISet();
             SetHealth();
             SetAttack();
         }
+
+        public void PlayerUISet()
+        {
+            currentHealth = maxHealth;
+            prevHealth = maxHealth;
+            loseHealth = maxHealth;
+            concentrate = MaxConcentrate;
+        }
+
+        private void CameraSet()
+        {
+            cam = Camera.main;
+            composers = new CinemachineComposer[3];
+            for (int i = 0; i < 3; i++)
+            {
+                composers[i] = PlayerCamera.GetRig(i).GetCinemachineComponent<CinemachineComposer>();
+            }
+            normalOffset = composers[0].m_TrackedObjectOffset;
+        }
+
+        public void CameraOffSet(float xOffset)
+        {
+            foreach (CinemachineComposer com in composers)
+            {
+                com.m_TrackedObjectOffset.Set(xOffset, com.m_TrackedObjectOffset.y, com.m_TrackedObjectOffset.z);
+            }
+        }
+
 
         public void Update()
         {
@@ -147,7 +170,7 @@ namespace Player
                     Attack();
                     break;
             }
-            
+
             DamageTest();
             SetHealth();
             Regain();
@@ -167,6 +190,68 @@ namespace Player
             MeleeAttack.Add(name, new AttackTime(name, 0.02f, 1.01f, 1.3f));
         }
 
+        public IEnumerator Settingoffset(float start, float end)
+        {
+            float offsetval = 0.3f;
+            while (true)
+            {
+                yield return new WaitForSecondsRealtime(0.01f);
+                if (OnBladeMode)
+                {
+                    start += offsetval;
+                    if (start >= end)
+                    {
+                        CameraOffSet(zoomOffset.x);
+                        yield break;
+                    }
+                    CameraOffSet(start);
+                }
+                else
+                {
+                    start -= offsetval;
+                    if (start <= end)
+                    {
+                        CameraOffSet(normalOffset.x);
+                        yield break;
+                    }
+                    CameraOffSet(start);
+                }
+            }
+        }
+
+        public IEnumerator SetFov(float start, float end)
+        {
+            float fovspeed = 0.7f;
+            while (true)
+            {
+                yield return new WaitForSecondsRealtime(0.01f);
+                if (OnBladeMode)
+                {
+                    start -= fovspeed;
+                    if (start <= end)
+                    {
+                        SetFieldOfView(zoomFov);
+                        yield break;
+                    }
+                    SetFieldOfView(start);
+                }
+                else
+                {
+                    start += fovspeed;
+                    if (start >= end)
+                    {
+                        SetFieldOfView(normalFov);
+                        yield break;
+                    }
+                    SetFieldOfView(start);
+                }
+            }
+        }
+
+        public void SetFieldOfView(float fov)
+        {
+            PlayerCamera.m_Lens.FieldOfView = fov;
+        }
         public void SetHealth()
         {
             if (currentHealth > prevHealth)
@@ -185,7 +270,6 @@ namespace Player
             ConcentrateBar.SetGage(concentrate);
         }
 
-
         // 테스트용 함수 테스트 끝나면 제거할것
         public void DamageTest()
         {
@@ -203,12 +287,6 @@ namespace Player
         public void Move()
         {
             string MoveSpeed = "MoveSpeed";
-            if (state == Playerstate.BladeMode || state == Playerstate.Attack)
-            {
-                Moving = false;
-                return;
-            }
-
             Vector3 moveVec = InputMove();
             controller.Move(moveVec * moveSpeed * Time.deltaTime);
 
@@ -219,7 +297,7 @@ namespace Player
             Moving = moveVec.sqrMagnitude != 0 ? true : false;
 
             MoveState();
-            anim.SetFloat(MoveSpeed,moveVec.sqrMagnitude);
+            anim.SetFloat(MoveSpeed, moveVec.sqrMagnitude);
 
         }
 
@@ -238,7 +316,7 @@ namespace Player
 
         private void MoveState()
         {
-            state = Moving ? Playerstate.Move : Playerstate.Idle ;
+            state = Moving ? Playerstate.Move : Playerstate.Idle;
             anim.SetBool("isMoving", Moving);
         }
 
@@ -270,14 +348,12 @@ namespace Player
 
             CutPlane.Rotate(0f, 0f, Input.GetAxisRaw("Horizontal") * Time.unscaledDeltaTime * 100);
 
-
-            if (state == Playerstate.BladeMode)
+            if (OnBladeMode)
             {
                 if (Input.GetButtonDown("Fire1"))
                 {
                     BladeStart?.Invoke();
                     BladeAttack = true;
-                    
                 }
 
                 if (BladeAttack)
@@ -296,30 +372,38 @@ namespace Player
         public void ModeChanger(bool BladeMode)
         {
             OnBladeMode = !BladeMode;
-            // 원래의 OnBladeMode의 반대되는 값을 OnBladeMode에 입력하고
-            // OnBladeMode의 True/False 값을 기준으로 BladeMode/Idle 을 구분할 값을 변경
             state = OnBladeMode ? Playerstate.BladeMode : Playerstate.Idle;
-            PlayerCamera.m_Priority = OnBladeMode ? 5 : 15;
             CutPlane.gameObject.SetActive(OnBladeMode);
             CutPlane.localEulerAngles = Vector3.zero;
-            CineMachine.m_DefaultBlend = OnBladeMode ?
-                new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.EaseInOut, 0.02f) :
-                new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.EaseInOut, 0.5f)  ;
-            anim.SetBool("BladeMode",OnBladeMode);
-            cam.transform.rotation = transform.rotation;
+
+            BladeModeCameraSetting();
+            anim.SetBool("BladeMode", OnBladeMode);
             attackTimer = 0;
             string debug = OnBladeMode ? "BladeModeOn" : "BladeModeOff";
             Debug.Log(debug);
             if (!OnBladeMode)
             {
-                transform.rotation = Quaternion.Euler(0, transform.rotation.y, 0).normalized;
+                float y = transform.eulerAngles.y;
+                transform.rotation = Quaternion.Euler(Vector3.zero);
+                transform.Rotate(new Vector3(0, y, 0));
                 timemanager.SlowMotionOut();
             }
             else
             {
                 timemanager.SlowMotion();
             }
+        }
 
+        public void BladeModeCameraSetting()
+        {
+            Vector3 startoffset = OnBladeMode ? normalOffset : zoomOffset;
+            Vector3 endoffset = OnBladeMode ? zoomOffset : normalOffset;
+
+            float startfov = OnBladeMode ? normalFov : zoomFov;
+            float endfov = OnBladeMode ? zoomFov : normalFov;
+
+            StartCoroutine(Settingoffset(startoffset.x, endoffset.x));
+            StartCoroutine(SetFov(startfov, endfov));
         }
 
         public void TestConcentrate()
@@ -391,29 +475,20 @@ namespace Player
 
         public void Jump()
         {
-            if (state != Playerstate.Attack)
-            {
+
+
                 if (Input.GetButtonDown("Jump") && isGrounded)
                 {
                     velocity.y = jumpSpeed;
                     anim.SetBool("isJump", true);
                 }
-            }
+
 
             controller.Move(Vector3.up * velocity.y * Time.deltaTime);
         }
 
         public void Attack()
         {
-            if (state == Playerstate.BladeMode || state == Playerstate.Move)
-            {
-                return;
-            }
-
-            if(state == Playerstate.Idle)
-            {
-                key = "melee";
-            }
 
             if (AttackCount == 0)
             {
