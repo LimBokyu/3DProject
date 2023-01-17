@@ -153,7 +153,6 @@ namespace Player
         {
             switch (state)
             {
-                
                 case Playerstate.Idle:
                     BladeModeSwitch();
                     Attack();
@@ -211,8 +210,6 @@ namespace Player
             MeleeAttack.Add(name, new AttackTime(name, 0.2f, 0.7f, 1.05f));
             name = "melee3";
             MeleeAttack.Add(name, new AttackTime(name, 0.02f, 1.01f, 1.3f));
-            name = "melee4";
-            MeleeAttack.Add(name, new AttackTime(name, 0.2f, 1f, 1.3f));
         }
 
         public IEnumerator Settingoffset(float start, float end)
@@ -396,7 +393,6 @@ namespace Player
             OnBladeMode = !BladeMode;
             CutPlane.gameObject.SetActive(OnBladeMode);
             CutPlane.localEulerAngles = Vector3.zero;
-
             BladeModeCameraSetting();
             anim.SetBool("BladeMode", OnBladeMode);
             attackTimer = 0;
@@ -528,7 +524,7 @@ namespace Player
                     transform.forward = Vector3.Lerp(transform.forward, moveVec, 0.8f);
                 }
 
-                if (AttackCount >= 4)
+                if (AttackCount >= 3)
                 {
                     AttackCount = 1;
                 }
