@@ -153,10 +153,11 @@ namespace Player
         {
             switch (state)
             {
+                
                 case Playerstate.Idle:
-                    BladeMode();
-                    Move();
+                    BladeModeSwitch();
                     Attack();
+                    Move();
                     Jump();
                     break;
                 case Playerstate.Move:
@@ -164,6 +165,7 @@ namespace Player
                     Jump();
                     break;
                 case Playerstate.BladeMode:
+                    BladeModeSwitch();
                     BladeMode();
                     break;
                 case Playerstate.Attack:
@@ -171,11 +173,32 @@ namespace Player
                     break;
             }
 
+            StateUpdate();
             DamageTest();
             SetHealth();
             Regain();
             IsGround();
             TestConcentrate();
+        }
+
+        public void StateUpdate()
+        {
+            if(OnBladeMode)
+            {
+                state = Playerstate.BladeMode;
+            }
+            else if(AttackCount>0)
+            {
+                state = Playerstate.Attack;
+            }
+            else if(Moving)
+            {
+                state = Playerstate.Move;
+            }
+            else
+            {
+                state = Playerstate.Idle;
+            }
         }
 
         private void SetAttack()
@@ -188,6 +211,8 @@ namespace Player
             MeleeAttack.Add(name, new AttackTime(name, 0.2f, 0.7f, 1.05f));
             name = "melee3";
             MeleeAttack.Add(name, new AttackTime(name, 0.02f, 1.01f, 1.3f));
+            name = "melee4";
+            MeleeAttack.Add(name, new AttackTime(name, 0.2f, 1f, 1.3f));
         }
 
         public IEnumerator Settingoffset(float start, float end)
@@ -252,6 +277,7 @@ namespace Player
         {
             PlayerCamera.m_Lens.FieldOfView = fov;
         }
+
         public void SetHealth()
         {
             if (currentHealth > prevHealth)
@@ -296,9 +322,8 @@ namespace Player
             }
             Moving = moveVec.sqrMagnitude != 0 ? true : false;
 
-            MoveState();
+            anim.SetBool("isMoving", Moving);
             anim.SetFloat(MoveSpeed, moveVec.sqrMagnitude);
-
         }
 
         private Vector3 InputMove()
@@ -313,13 +338,6 @@ namespace Player
 
             return moveVec;
         }
-
-        private void MoveState()
-        {
-            state = Moving ? Playerstate.Move : Playerstate.Idle;
-            anim.SetBool("isMoving", Moving);
-        }
-
 
         public void TakeDamage(int damage)
         {
@@ -338,13 +356,17 @@ namespace Player
             }
         }
 
-        public void BladeMode()
+        public void BladeModeSwitch()
         {
             if (Input.GetKeyDown(KeyCode.Tab))
             {
                 Debug.Log("Tab");
                 ModeChanger(OnBladeMode);
             }
+        }
+
+        public void BladeMode()
+        {
 
             CutPlane.Rotate(0f, 0f, Input.GetAxisRaw("Horizontal") * Time.unscaledDeltaTime * 100);
 
@@ -372,7 +394,6 @@ namespace Player
         public void ModeChanger(bool BladeMode)
         {
             OnBladeMode = !BladeMode;
-            state = OnBladeMode ? Playerstate.BladeMode : Playerstate.Idle;
             CutPlane.gameObject.SetActive(OnBladeMode);
             CutPlane.localEulerAngles = Vector3.zero;
 
@@ -475,15 +496,11 @@ namespace Player
 
         public void Jump()
         {
-
-
-                if (Input.GetButtonDown("Jump") && isGrounded)
-                {
-                    velocity.y = jumpSpeed;
-                    anim.SetBool("isJump", true);
-                }
-
-
+            if (Input.GetButtonDown("Jump") && isGrounded)
+            {
+                velocity.y = jumpSpeed;
+                anim.SetBool("isJump", true);
+            }
             controller.Move(Vector3.up * velocity.y * Time.deltaTime);
         }
 
@@ -495,7 +512,6 @@ namespace Player
                 if (Input.GetButtonDown("Fire1"))
                 {
                     key = "melee";
-                    state = Playerstate.Attack;
                     AttackCount = 1;
                     key += AttackCount.ToString();
                     anim.SetBool(key, true);
@@ -512,7 +528,7 @@ namespace Player
                     transform.forward = Vector3.Lerp(transform.forward, moveVec, 0.8f);
                 }
 
-                if (AttackCount >= 3)
+                if (AttackCount >= 4)
                 {
                     AttackCount = 1;
                 }
@@ -527,40 +543,39 @@ namespace Player
                 Combo = false;
                 CallNextAttack = false;
             }
-            
 
-            if (state == Playerstate.Attack)
+
+            if (AttackCount > 0)
             {
                 attackTimer += Time.deltaTime;
                 AttackTime attack;
-                MeleeAttack.TryGetValue(key,out attack);
+                MeleeAttack.TryGetValue(key, out attack);
                 prevkey = key;
 
-                if(attackTimer >= attack.GetStart() &&
-                   attackTimer <  attack.GetEndAnim())
+                if (attackTimer >= attack.GetStart() &&
+                   attackTimer < attack.GetEndAnim())
                 {
                     CheckCombo();
                 }
 
                 if (attackTimer >= attack.GetStart() &&
-                    attackTimer <  attack.GetEnd())
+                    attackTimer < attack.GetEnd())
                 {
                     AttackStart?.Invoke();
-                    
+
                 }
-                else if(attackTimer >= attack.GetEnd() &&
+                else if (attackTimer >= attack.GetEnd() &&
                         attackTimer <= attack.GetEndAnim())
                 {
                     AttackEnd?.Invoke();
-                    if(Combo)
+                    if (Combo)
                     {
                         CallNextAttack = true;
                     }
                 }
-                else if(attackTimer > attack.GetEndAnim())
+                else if (attackTimer > attack.GetEndAnim())
                 {
                     anim.SetBool(key, false);
-                    state = Playerstate.Idle;
                     attackTimer = 0;
                     AttackCount = 0;
                 }
