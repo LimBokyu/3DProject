@@ -8,16 +8,13 @@ public class TimeManager : MonoBehaviour
 
     [SerializeField]
     private float SlowDownFactor = 0.05f;
+    [SerializeField]
+    private float normalFactor = 1f;
 
-    public void SlowMotion()
+    public void SlowMotion(bool BladeMode)
     {
-        Time.timeScale = SlowDownFactor;
-        Time.fixedDeltaTime = Time.timeScale * 0.02f;
-    }
-
-    public void SlowMotionOut()
-    {
-        Time.timeScale = 1f;
+        Time.timeScale = BladeMode ? SlowDownFactor : normalFactor;
+        Time.fixedDeltaTime =  Time.timeScale * 0.02f;
     }
 
 }

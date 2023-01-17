@@ -314,9 +314,8 @@ namespace Player
             controller.Move(moveVec * moveSpeed * Time.deltaTime);
 
             if (moveVec.sqrMagnitude != 0)
-            {
                 transform.forward = Vector3.Lerp(transform.forward, moveVec, 0.8f);
-            }
+
             Moving = moveVec.sqrMagnitude != 0 ? true : false;
 
             anim.SetBool("isMoving", Moving);
@@ -393,9 +392,11 @@ namespace Player
             OnBladeMode = !BladeMode;
             CutPlane.gameObject.SetActive(OnBladeMode);
             CutPlane.localEulerAngles = Vector3.zero;
+
             BladeModeCameraSetting();
             anim.SetBool("BladeMode", OnBladeMode);
             attackTimer = 0;
+            timemanager.SlowMotion(OnBladeMode);
             string debug = OnBladeMode ? "BladeModeOn" : "BladeModeOff";
             Debug.Log(debug);
             if (!OnBladeMode)
@@ -403,21 +404,17 @@ namespace Player
                 float y = transform.eulerAngles.y;
                 transform.rotation = Quaternion.Euler(Vector3.zero);
                 transform.Rotate(new Vector3(0, y, 0));
-                timemanager.SlowMotionOut();
-            }
-            else
-            {
-                timemanager.SlowMotion();
+                // ㄴ BladeMode 시에 바라보고 있던 방향으로의 캐릭터를 회전 
             }
         }
 
         public void BladeModeCameraSetting()
         {
             Vector3 startoffset = OnBladeMode ? normalOffset : zoomOffset;
-            Vector3 endoffset = OnBladeMode ? zoomOffset : normalOffset;
+            Vector3 endoffset   = OnBladeMode ? zoomOffset : normalOffset;
 
             float startfov = OnBladeMode ? normalFov : zoomFov;
-            float endfov = OnBladeMode ? zoomFov : normalFov;
+            float endfov   = OnBladeMode ? zoomFov : normalFov;
 
             StartCoroutine(Settingoffset(startoffset.x, endoffset.x));
             StartCoroutine(SetFov(startfov, endfov));
@@ -487,7 +484,7 @@ namespace Player
 
         public void PlayerDead()
         {
-
+            // 사망 미구현
         }
 
         public void Jump()
@@ -502,7 +499,6 @@ namespace Player
 
         public void Attack()
         {
-
             if (AttackCount == 0)
             {
                 if (Input.GetButtonDown("Fire1"))
@@ -520,18 +516,9 @@ namespace Player
                 key = "melee";
                 Vector3 moveVec = InputMove();
                 if (moveVec.sqrMagnitude != 0)
-                {
                     transform.forward = Vector3.Lerp(transform.forward, moveVec, 0.8f);
-                }
 
-                if (AttackCount >= 3)
-                {
-                    AttackCount = 1;
-                }
-                else
-                {
-                    AttackCount += 1;
-                }
+                AttackCount = AttackCount >= 3 ? 1 : AttackCount +=1;
                 key += AttackCount.ToString();
                 attackTimer = 0;
                 anim.SetBool(key, true);
@@ -596,38 +583,6 @@ namespace Player
                 velocity.y = -2f;
                 anim.SetBool("isJump", false);
             }
-        }
-
-    }
-
-    class AttackTime
-    {
-        private string name;
-        private float startattack;
-        private float endattack;
-        private float endanim;
-
-        public AttackTime(string name, float Start, float End, float endanim)
-        {
-            this.name = name;
-            this.startattack = Start;
-            this.endattack = End;
-            this.endanim = endanim;
-        }
-
-        public float GetStart()
-        {
-            return startattack;
-        }
-
-        public float GetEnd()
-        {
-            return endattack;
-        }
-
-        public float GetEndAnim()
-        {
-            return endanim;
         }
     }
 }

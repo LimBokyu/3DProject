@@ -15,24 +15,35 @@ public class EnemyController : MonoBehaviour
     private EnemyState state;
     private Transform trans;
     private NavMeshAgent nav;
-
     private Animator anim;
 
+    public Transform PatrolPoint1;
+    public Transform PatrolPoint2;
+
+    //======== state of bool =========
     private bool isMoving = false;
+    private bool onDamaged = false;
+    private bool findEnemy = false;
+    private bool EnemySearch = false;
+
+    //================================
+
+    
+
     private void Start()
     {
         m_HP = 100;
         state = EnemyState.Idle;
         trans = GetComponent<Transform>();  
         nav = GetComponent<NavMeshAgent>();
-        anim = GetComponent<Animator>();    
+        anim = GetComponent<Animator>();
     }
 
     private void Update()
     {
         switch (state)
-            
         {
+
             case EnemyState.Dead:
                 Dead();
                 break;
@@ -65,6 +76,12 @@ public class EnemyController : MonoBehaviour
         }
 
         Alive();
+        UpdateAnim();
+    }
+
+    private void UpdateAnim()
+    {
+
     }
 
     private void Move()

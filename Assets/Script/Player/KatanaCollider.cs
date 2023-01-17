@@ -18,13 +18,11 @@ public class KatanaCollider : MonoBehaviour
 
     public void OnAttack()
     {
-        Debug.Log("ColliderOn");
         col.enabled = true;
     }
 
     public void AttackEnd()
     {
-        Debug.Log("ColliderOff");
         col.enabled = false;
     }
 
