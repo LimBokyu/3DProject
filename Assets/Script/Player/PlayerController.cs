@@ -5,6 +5,7 @@ using UnityEngine.Events;
 using Cinemachine;
 using Unity.VisualScripting;
 using UnityEditor.UIElements;
+using UnityEngine.Rendering.PostProcessing;
 
 enum Playerstate { Idle, Move, Attack, Dodge, BladeMode, Hurt, Dash }
 namespace Player
@@ -51,6 +52,10 @@ namespace Player
         //============= BladeMode ==============
         public TimeManager timemanager;
         public Transform CutPlane;
+        [SerializeField] private float NormalVig = 0f;
+        [SerializeField] private float ZoomVig = 0.6f;
+        [SerializeField] private float NormalChrom = 0f;
+        [SerializeField] private float ZoomChrom = 1f;
         //======================================
         [Space]
 
@@ -148,6 +153,73 @@ namespace Player
             }
         }
 
+        public IEnumerator SetChrom(float beginchrom, float endchrom)
+        {
+            float chromval = 0.1f;
+            while (true)
+            {
+                yield return new WaitForSecondsRealtime(0.01f);
+                if (OnBladeMode)
+                {
+                    beginchrom += chromval;
+                    if (beginchrom >= endchrom)
+                    {
+                        CameraChromSet(ZoomChrom);
+                        yield break;
+                    }
+                    CameraChromSet(beginchrom);
+                }
+                else
+                {
+                    beginchrom -= chromval;
+                    if (beginchrom <= endchrom)
+                    {
+                        CameraChromSet(NormalChrom);
+                        yield break;
+                    }
+                    CameraChromSet(beginchrom);
+                }
+            }
+        }
+
+        public IEnumerator SetVig(float beginvig, float endvig)
+        {
+            float vigval = 0.1f;
+            while (true)
+            {
+                yield return new WaitForSecondsRealtime(0.01f);
+                if (OnBladeMode)
+                {
+                    beginvig += vigval;
+                    if (beginvig >= endvig)
+                    {
+                        CameraVigSet(ZoomVig);
+                        yield break;
+                    }
+                    CameraVigSet(beginvig);
+                }
+                else
+                {
+                    beginvig -= vigval;
+                    if (beginvig <= endvig)
+                    {
+                        CameraVigSet(NormalVig);
+                        yield break;
+                    }
+                    CameraVigSet(beginvig);
+                }
+            }
+        }
+
+        public void CameraVigSet(float vigval)
+        {
+            cam.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<Vignette>().intensity.value = vigval;
+        }
+
+        public void CameraChromSet(float chromval)
+        {
+            cam.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<ChromaticAberration>().intensity.value = chromval;
+        }
 
         public void Update()
         {
@@ -394,6 +466,7 @@ namespace Player
             CutPlane.localEulerAngles = Vector3.zero;
 
             BladeModeCameraSetting();
+            BladeModeSetPostProcessing();
             anim.SetBool("BladeMode", OnBladeMode);
             attackTimer = 0;
             timemanager.SlowMotion(OnBladeMode);
@@ -406,6 +479,18 @@ namespace Player
                 transform.Rotate(new Vector3(0, y, 0));
                 // ㄴ BladeMode 시에 바라보고 있던 방향으로의 캐릭터를 회전 
             }
+        }
+
+        public void BladeModeSetPostProcessing()
+        {
+            float startvig = OnBladeMode ? ZoomVig : NormalVig;
+            float endvig = OnBladeMode ? NormalVig : ZoomVig;
+
+            float startchrom = OnBladeMode ? ZoomChrom : NormalChrom;
+            float endchrom = OnBladeMode ? NormalChrom : ZoomChrom;
+
+            StartCoroutine(SetChrom(startchrom, endchrom));
+            StartCoroutine(SetVig(startvig, endvig));
         }
 
         public void BladeModeCameraSetting()
