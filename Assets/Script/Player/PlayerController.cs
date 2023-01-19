@@ -36,6 +36,7 @@ namespace Player
         public HealthBar healthBar;
         public RegainBar RegainBar;
         public ConcentrateBar ConcentrateBar;
+        public ScreenFlash flash;
         //======================================
         [Space]
 
@@ -155,10 +156,10 @@ namespace Player
 
         public IEnumerator SetChrom(float beginchrom, float endchrom)
         {
-            float chromval = 0.1f;
+            float chromval = 0.2f;
             while (true)
             {
-                yield return new WaitForSecondsRealtime(0.01f);
+                yield return new WaitForSecondsRealtime(0.05f);
                 if (OnBladeMode)
                 {
                     beginchrom += chromval;
@@ -184,10 +185,10 @@ namespace Player
 
         public IEnumerator SetVig(float beginvig, float endvig)
         {
-            float vigval = 0.1f;
+            float vigval = 0.05f;
             while (true)
             {
-                yield return new WaitForSecondsRealtime(0.01f);
+                yield return new WaitForSecondsRealtime(0.02f);
                 if (OnBladeMode)
                 {
                     beginvig += vigval;
@@ -213,12 +214,12 @@ namespace Player
 
         public void CameraVigSet(float vigval)
         {
-            cam.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<Vignette>().intensity.value = vigval;
+            Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<Vignette>().intensity.value = vigval;
         }
 
         public void CameraChromSet(float chromval)
         {
-            cam.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<ChromaticAberration>().intensity.value = chromval;
+            Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<ChromaticAberration>().intensity.value = chromval;
         }
 
         public void Update()
@@ -315,7 +316,7 @@ namespace Player
 
         public IEnumerator SetFov(float start, float end)
         {
-            float fovspeed = 0.7f;
+            float fovspeed = 1f;
             while (true)
             {
                 yield return new WaitForSecondsRealtime(0.01f);
@@ -370,6 +371,7 @@ namespace Player
         {
             if (Input.GetKeyDown(KeyCode.K))
             {
+                flash.Hurt();
                 TakeDamage(150);
             }
 
@@ -470,6 +472,7 @@ namespace Player
             anim.SetBool("BladeMode", OnBladeMode);
             attackTimer = 0;
             timemanager.SlowMotion(OnBladeMode);
+            
             string debug = OnBladeMode ? "BladeModeOn" : "BladeModeOff";
             Debug.Log(debug);
             if (!OnBladeMode)
@@ -479,15 +482,18 @@ namespace Player
                 transform.Rotate(new Vector3(0, y, 0));
                 // ㄴ BladeMode 시에 바라보고 있던 방향으로의 캐릭터를 회전 
             }
+            else
+                flash.OrderFlash();
         }
 
         public void BladeModeSetPostProcessing()
         {
-            float startvig = OnBladeMode ? ZoomVig : NormalVig;
-            float endvig = OnBladeMode ? NormalVig : ZoomVig;
+            float startvig = OnBladeMode ? NormalVig : ZoomVig;
+            float endvig = OnBladeMode ?  ZoomVig: NormalVig;
 
-            float startchrom = OnBladeMode ? ZoomChrom : NormalChrom;
-            float endchrom = OnBladeMode ? NormalChrom : ZoomChrom;
+
+            float startchrom = OnBladeMode ? NormalChrom : ZoomChrom;
+            float endchrom = OnBladeMode ? ZoomChrom: NormalChrom;
 
             StartCoroutine(SetChrom(startchrom, endchrom));
             StartCoroutine(SetVig(startvig, endvig));

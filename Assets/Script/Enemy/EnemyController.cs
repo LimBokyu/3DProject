@@ -4,7 +4,10 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AI;
 
-enum EnemyState { Idle, Attack, Alert, Patrol, MoveBack, Dead, Search, Chase}
+enum EnemyState { Idle, Attack, Alert, Patrol, MoveBack, Dead, Search, Chase, Move }
+enum IdleState { None, Idle, Patrol, MoveBack }
+enum CombatState { None, Attack, Alert, Search, Chase }
+
 public class EnemyController : MonoBehaviour
 {
     [SerializeField]
@@ -22,13 +25,14 @@ public class EnemyController : MonoBehaviour
 
     //======== state of bool =========
     private bool isMoving = false;
+    private bool isDead = false;
     private bool onDamaged = false;
     private bool findEnemy = false;
     private bool EnemySearch = false;
-
+    private bool OnCombat = false;
     //================================
 
-    
+
 
     private void Start()
     {
@@ -43,45 +47,85 @@ public class EnemyController : MonoBehaviour
     {
         switch (state)
         {
-
             case EnemyState.Dead:
                 Dead();
                 break;
 
             case EnemyState.Chase:
+                ViewOnCombat();
                 Move();
                 break;
 
             case EnemyState.Idle:
+                ViewOnIdle();
                 break;
 
             case EnemyState.Alert:
+                Alert();
+                ViewOnCombat();
                 break;
 
             case EnemyState.Attack:
+                ViewOnCombat();
                 Attack();
                 break;
 
             case EnemyState.Patrol:
+                ViewOnIdle();
                 Move();
                 break;
 
             case EnemyState.Search:
+                ViewOnCombat();
                 Move();
                 break;
 
             case EnemyState.MoveBack:
+                ViewOnIdle();
                 Move();
                 break;
         }
-
-        Alive();
+        
+        CheckHP();
+        StateUpdate();
         UpdateAnim();
+    }
+
+    private void ViewOnIdle()
+    {
+
+    }
+
+    private void ViewOnCombat()
+    {
+        
     }
 
     private void UpdateAnim()
     {
 
+    }
+
+    private void StateUpdate()
+    {
+        if (isDead)
+            state = EnemyState.Dead;
+        else if (onDamaged)
+            state = EnemyState.Alert;
+        else if (isMoving)
+            state = EnemyState.Move;
+        else if(OnCombat)
+        {
+            state = EnemyState.Attack;
+            state = EnemyState.Chase;
+            state = EnemyState.Search;
+        }
+            
+    }
+
+    private void Alert()
+    {
+        OnCombat = true;
     }
 
     private void Move()
@@ -91,12 +135,11 @@ public class EnemyController : MonoBehaviour
         transform.Translate(transform.forward * Time.deltaTime * moveSpeed);
     }
 
-    private void Alive()
+    private void CheckHP()
     {
         if(m_HP <= 0)
         {
-            state = EnemyState.Dead;
-            Dead();
+            isDead = true;
         }
     }
 
@@ -108,6 +151,7 @@ public class EnemyController : MonoBehaviour
     
     public void TakeDamage(int damage)
     {
+        onDamaged = true;
         m_HP -= damage;
         string TestText = damage.ToString() + " 데미지를 입어 체력이 " + m_HP.ToString() + " 남았습니다";
         Debug.Log(TestText);
