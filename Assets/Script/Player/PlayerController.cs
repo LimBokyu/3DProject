@@ -53,10 +53,10 @@ namespace Player
         //============= BladeMode ==============
         public TimeManager timemanager;
         public Transform CutPlane;
-        [SerializeField] private float NormalVig = 0f;
-        [SerializeField] private float ZoomVig = 0.6f;
-        [SerializeField] private float NormalChrom = 0f;
-        [SerializeField] private float ZoomChrom = 1f;
+        private float NormalVig = 0f;
+        private float ZoomVig = 0.6f;
+        private float NormalChrom = 0f;
+        private float ZoomChrom = 1f;
         //======================================
         [Space]
 
@@ -68,7 +68,7 @@ namespace Player
         private CinemachineComposer[] composers;
         private float normalFov = 30;
         private float zoomFov = 15;
-        public Vector3 zoomOffset;
+        public  Vector3 zoomOffset;
         private Vector3 normalOffset;
         //======================================
         [Space]
@@ -110,6 +110,7 @@ namespace Player
         [SerializeField] private int currentHealth;
         [SerializeField] private int concentrate;
         //=======================================
+
 
         private void Awake()
         {
@@ -153,6 +154,8 @@ namespace Player
                 com.m_TrackedObjectOffset.Set(xOffset, com.m_TrackedObjectOffset.y, com.m_TrackedObjectOffset.z);
             }
         }
+
+#region PostProcessing Coroutine
 
         public IEnumerator SetChrom(float beginchrom, float endchrom)
         {
@@ -212,6 +215,10 @@ namespace Player
             }
         }
 
+        #endregion
+
+#region PostProcessing Setting
+
         public void CameraVigSet(float vigval)
         {
             Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<Vignette>().intensity.value = vigval;
@@ -221,6 +228,8 @@ namespace Player
         {
             Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<ChromaticAberration>().intensity.value = chromval;
         }
+
+        #endregion
 
         public void Update()
         {
@@ -285,6 +294,8 @@ namespace Player
             MeleeAttack.Add(name, new AttackTime(name, 0.02f, 1.01f, 1.3f));
         }
 
+        #region BladeModeCamara Setting
+
         public IEnumerator Settingoffset(float start, float end)
         {
             float offsetval = 0.3f;
@@ -347,6 +358,8 @@ namespace Player
         {
             PlayerCamera.m_Lens.FieldOfView = fov;
         }
+
+        #endregion
 
         public void SetHealth()
         {
@@ -483,14 +496,13 @@ namespace Player
                 // ㄴ BladeMode 시에 바라보고 있던 방향으로의 캐릭터를 회전 
             }
             else
-                flash.OrderFlash();
+                flash.BladeFlash();
         }
 
         public void BladeModeSetPostProcessing()
         {
             float startvig = OnBladeMode ? NormalVig : ZoomVig;
             float endvig = OnBladeMode ?  ZoomVig: NormalVig;
-
 
             float startchrom = OnBladeMode ? NormalChrom : ZoomChrom;
             float endchrom = OnBladeMode ? ZoomChrom: NormalChrom;

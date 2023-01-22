@@ -20,8 +20,13 @@ public class EnemyController : MonoBehaviour
     private NavMeshAgent nav;
     private Animator anim;
 
+    private EnemyView view;
+
     public Transform PatrolPoint1;
     public Transform PatrolPoint2;
+    private Transform Target;
+
+    
 
     //======== state of bool =========
     private bool isMoving = false;
@@ -38,9 +43,11 @@ public class EnemyController : MonoBehaviour
     {
         m_HP = 100;
         state = EnemyState.Idle;
-        trans = GetComponent<Transform>();  
+        trans = GetComponent<Transform>();
         nav = GetComponent<NavMeshAgent>();
         anim = GetComponent<Animator>();
+        view = GetComponent<EnemyView>();
+        Target = null;
     }
 
     private void Update()
@@ -53,7 +60,6 @@ public class EnemyController : MonoBehaviour
 
             case EnemyState.Chase:
                 ViewOnCombat();
-                Move();
                 break;
 
             case EnemyState.Idle:
@@ -72,17 +78,15 @@ public class EnemyController : MonoBehaviour
 
             case EnemyState.Patrol:
                 ViewOnIdle();
-                Move();
                 break;
 
             case EnemyState.Search:
                 ViewOnCombat();
-                Move();
+                SearchEnemy();
                 break;
 
             case EnemyState.MoveBack:
                 ViewOnIdle();
-                Move();
                 break;
         }
         
@@ -93,15 +97,31 @@ public class EnemyController : MonoBehaviour
 
     private void ViewOnIdle()
     {
-
+        if(null != view.GetTarget())
+        {
+            state = EnemyState.Alert;
+        }
+        // 작은 범위내에
+        // 걸리면 state -> alert
     }
 
     private void ViewOnCombat()
     {
-        
+        if (null != view.GetTarget())
+        {
+            state = EnemyState.Attack;
+            Attack();
+        }
+        // 큰 범위 내에
+        // 걸리면 state -> alert 대신 attack
     }
 
     private void UpdateAnim()
+    {
+
+    }
+
+    private void SearchEnemy()
     {
 
     }
@@ -126,13 +146,14 @@ public class EnemyController : MonoBehaviour
     private void Alert()
     {
         OnCombat = true;
+        Target = view.GetTarget();
+
+        Attack();
     }
 
     private void Move()
     {
-        isMoving = true;
-        anim.SetBool("isMoving", isMoving);
-        transform.Translate(transform.forward * Time.deltaTime * moveSpeed);
+        
     }
 
     private void CheckHP()
@@ -159,7 +180,7 @@ public class EnemyController : MonoBehaviour
 
     private void Attack()
     {
-
+        
     }
 
     private void OnTriggerEnter(Collider other)

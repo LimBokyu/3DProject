@@ -5,30 +5,27 @@ using UnityEngine.UI;
 
 public class ScreenFlash : MonoBehaviour
 {
-    public Image image;
+    private Image image;
+    public Image Hurtimage;
+    public Image flashImage;
 
-    [SerializeField]
     private float flashTime = 0.25f;
-    [SerializeField]
-    private float Alpha = 0.5f;
-    [SerializeField]
+    private float Alpha;
     private Color BladeModeFlash = Color.white;
-    [SerializeField]
-    private Color HurtFlash = Color.red;
-    [SerializeField]
     private Color ChangeColor;
-    public bool BladeMode = true;
+    private bool BladeMode = true;
 
     private Coroutine flashcoroutine = null;
-
 
     private void Start()
     {
         SetColor();
     }
-    public void SetColor()
+    private void SetColor()
     {
-        ChangeColor = BladeMode ? BladeModeFlash : HurtFlash;
+        image = BladeMode ? flashImage : Hurtimage;
+        Alpha = BladeMode ? 0.5f : 1f;
+        ChangeColor = BladeModeFlash;
     }
 
     public void Hurt()
@@ -38,12 +35,19 @@ public class ScreenFlash : MonoBehaviour
         OrderFlash();
     }
 
-    public void OrderFlash()
+    public void BladeFlash()
+    {
+        BladeMode = true;
+        SetColor();
+        OrderFlash();
+    }
+
+    private void OrderFlash()
     {
         StartFlash(flashTime, Alpha, ChangeColor);
     }
 
-    public void StartFlash(float flash, float alpha, Color color)
+    private void StartFlash(float flash, float alpha, Color color)
     {
         image.color = color;
 
@@ -58,25 +62,17 @@ public class ScreenFlash : MonoBehaviour
     private IEnumerator Flash(float flash, float alpha)
     {
         float duration = flash / 2;
-        for(float time = 0; time <= duration; time+=Time.unscaledDeltaTime)
-        {
-            Color curColor = image.color;
-            curColor.a = Mathf.Lerp(0, alpha, time / duration);
-            image.color = curColor;
-            yield return null;
-        }
 
-        duration = flash / 2;
-        for (float time = 0; time <= duration; time += Time.unscaledDeltaTime)
+        for (float time = 0; time <= flash; time += Time.unscaledDeltaTime)
         {
             Color curColor = image.color;
-            curColor.a = Mathf.Lerp(alpha, 0 , time / duration);
+            curColor.a = time <= duration ?
+            2 * Mathf.Lerp(0, alpha, time / flash) :
+            2 * Mathf.Lerp(alpha, 0, time / flash);
             image.color = curColor;
             yield return null;
         }
 
         image.color = new Color32(0, 0, 0, 0);
-        BladeMode = true;
-        SetColor();
     }
 }

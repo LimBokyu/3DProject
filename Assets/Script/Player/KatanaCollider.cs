@@ -25,8 +25,6 @@ public class KatanaCollider : MonoBehaviour
     {
         col.enabled = false;
     }
-
-
     private void OnTriggerEnter(Collider collision)
     {
         if(collision.tag.Equals("Enemy"))
