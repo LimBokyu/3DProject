@@ -458,6 +458,7 @@ namespace Player
                 if (Input.GetButtonDown("Fire1"))
                 {
                     BladeStart?.Invoke();
+                    CameraShake();
                     BladeAttack = true;
                 }
 
@@ -497,6 +498,11 @@ namespace Player
             }
             else
                 flash.BladeFlash();
+        }
+
+        private void CameraShake()
+        {
+            PlayerCamera.GetComponent<CinemachineImpulseSource>().GenerateImpulse();
         }
 
         public void BladeModeSetPostProcessing()

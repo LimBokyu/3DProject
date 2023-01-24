@@ -19,17 +19,25 @@ public class EnemyView : MonoBehaviour
 
     private void Start()
     {
-        //con = GetComponenet<EnemyController>();
+        con = GetComponent<EnemyController>();
+        viewAngle = 120f;
     }
 
     private void Update()
     {
         FindTarget();
+        CheckCombat();
+        SetRange();
+    }
+
+    private void CheckCombat()
+    {
+        OnCombat = con.GetCombat();
     }
 
     private void SetRange()
     {
-
+        viewRange = OnCombat ? 15f : 30f;
     }
 
     private void SetTarget(Transform trans)

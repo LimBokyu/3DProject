@@ -59,62 +59,55 @@ public class EnemyController : MonoBehaviour
                 break;
 
             case EnemyState.Chase:
-                ViewOnCombat();
                 break;
 
             case EnemyState.Idle:
-                ViewOnIdle();
                 break;
 
             case EnemyState.Alert:
                 Alert();
-                ViewOnCombat();
                 break;
 
             case EnemyState.Attack:
-                ViewOnCombat();
                 Attack();
                 break;
 
             case EnemyState.Patrol:
-                ViewOnIdle();
                 break;
 
             case EnemyState.Search:
-                ViewOnCombat();
                 SearchEnemy();
                 break;
 
             case EnemyState.MoveBack:
-                ViewOnIdle();
                 break;
         }
-        
+
+        EnemySight();
         CheckHP();
         StateUpdate();
         UpdateAnim();
     }
 
-    private void ViewOnIdle()
+    public bool GetCombat()
+    {
+        return OnCombat;
+    }
+
+    private void EnemySight()
     {
         if(null != view.GetTarget())
         {
+            OnCombat = true;
             state = EnemyState.Alert;
+            Move();
         }
+        else
+            OnCombat = false;
         // 작은 범위내에
         // 걸리면 state -> alert
     }
 
-    private void ViewOnCombat()
-    {
-        if (null != view.GetTarget())
-        {
-            state = EnemyState.Attack;
-            Attack();
-        }
-        // 큰 범위 내에
-        // 걸리면 state -> alert 대신 attack
-    }
 
     private void UpdateAnim()
     {
@@ -123,7 +116,7 @@ public class EnemyController : MonoBehaviour
 
     private void SearchEnemy()
     {
-
+        
     }
 
     private void StateUpdate()
@@ -153,7 +146,8 @@ public class EnemyController : MonoBehaviour
 
     private void Move()
     {
-        
+        if (Target != null)
+              nav.Move(Target.position);
     }
 
     private void CheckHP()
