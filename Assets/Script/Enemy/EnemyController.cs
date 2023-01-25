@@ -25,6 +25,7 @@ public class EnemyController : MonoBehaviour
     public Transform PatrolPoint1;
     public Transform PatrolPoint2;
     private Transform Target;
+    private Vector3 des;
 
     
 
@@ -48,6 +49,7 @@ public class EnemyController : MonoBehaviour
         anim = GetComponent<Animator>();
         view = GetComponent<EnemyView>();
         Target = null;
+        des = Vector3.zero;
     }
 
     private void Update()
@@ -83,6 +85,7 @@ public class EnemyController : MonoBehaviour
                 break;
         }
 
+        Move();
         EnemySight();
         CheckHP();
         StateUpdate();
@@ -96,14 +99,18 @@ public class EnemyController : MonoBehaviour
 
     private void EnemySight()
     {
-        if(null != view.GetTarget())
+        if (null != view.GetTarget())
         {
+            Target = view.GetTarget();
             OnCombat = true;
             state = EnemyState.Alert;
-            Move();
+            //Move();
         }
         else
+        {
+            Target = null;
             OnCombat = false;
+        }
         // 작은 범위내에
         // 걸리면 state -> alert
     }
@@ -139,7 +146,6 @@ public class EnemyController : MonoBehaviour
     private void Alert()
     {
         OnCombat = true;
-        Target = view.GetTarget();
 
         Attack();
     }
@@ -147,7 +153,8 @@ public class EnemyController : MonoBehaviour
     private void Move()
     {
         if (Target != null)
-              nav.Move(Target.position);
+            nav.destination = Target.position;
+              
     }
 
     private void CheckHP()
