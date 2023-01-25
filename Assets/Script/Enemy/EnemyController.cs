@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -15,19 +16,26 @@ public class EnemyController : MonoBehaviour
 
     private float moveSpeed = 500f;
 
-    private EnemyState state;
+    [SerializeField] private EnemyState state;
     private Transform trans;
     private NavMeshAgent nav;
     private Animator anim;
 
+    private Coroutine shotBullet;
+
     private EnemyView view;
 
+    public Transform muzzle;
     public Transform PatrolPoint1;
     public Transform PatrolPoint2;
-    private Transform Target;
-    private Vector3 des;
 
-    
+    public GameObject Bullet;
+    public ParticleSystem gunFlash;
+
+    [SerializeField]
+    private Transform Target;
+
+    private Vector3 dir;
 
     //======== state of bool =========
     private bool isMoving = false;
@@ -36,6 +44,7 @@ public class EnemyController : MonoBehaviour
     private bool findEnemy = false;
     private bool EnemySearch = false;
     private bool OnCombat = false;
+    private bool InShootingRange = false;
     //================================
 
 
@@ -49,7 +58,7 @@ public class EnemyController : MonoBehaviour
         anim = GetComponent<Animator>();
         view = GetComponent<EnemyView>();
         Target = null;
-        des = Vector3.zero;
+        shotBullet = null;
     }
 
     private void Update()
@@ -85,6 +94,7 @@ public class EnemyController : MonoBehaviour
                 break;
         }
 
+        //SetTarget();
         Move();
         EnemySight();
         CheckHP();
@@ -97,6 +107,15 @@ public class EnemyController : MonoBehaviour
         return OnCombat;
     }
 
+    private IEnumerator Shoot()
+    {
+        yield return new WaitForSeconds(1.2f);
+        float y = muzzle.transform.eulerAngles.y;
+        float z = muzzle.transform.eulerAngles.z;
+        Instantiate(Bullet, muzzle.position, transform.rotation); //Quaternion.Euler(0f, y, z));
+        shotBullet = null;
+    }
+
     private void EnemySight()
     {
         if (null != view.GetTarget())
@@ -104,7 +123,6 @@ public class EnemyController : MonoBehaviour
             Target = view.GetTarget();
             OnCombat = true;
             state = EnemyState.Alert;
-            //Move();
         }
         else
         {
@@ -115,10 +133,22 @@ public class EnemyController : MonoBehaviour
         // °É¸®¸é state -> alert
     }
 
+    
+    private void SetTarget()
+    {
+        if (null != view.GetTarget())
+        {
+            Target = view.GetTarget();
+            Target.position = view.GetTarget().position;
+        }
+        else
+        { Target = null; }
+    }
+
 
     private void UpdateAnim()
     {
-
+        anim.SetBool("isMoving",isMoving);
     }
 
     private void SearchEnemy()
@@ -136,25 +166,44 @@ public class EnemyController : MonoBehaviour
             state = EnemyState.Move;
         else if(OnCombat)
         {
-            state = EnemyState.Attack;
-            state = EnemyState.Chase;
-            state = EnemyState.Search;
+          // state = EnemyState.Attack;
+          // state = EnemyState.Chase;
+          // state = EnemyState.Search;
         }
-            
     }
 
     private void Alert()
     {
         OnCombat = true;
-
         Attack();
     }
 
     private void Move()
     {
         if (Target != null)
-            nav.destination = Target.position;
-              
+        {
+            if (view.isInRange())
+            {
+                dir = Target.position - transform.position;
+                dir.y = 0f;
+                Quaternion rot = Quaternion.LookRotation(dir.normalized);
+                transform.rotation = rot;
+                StopMoving();
+            }
+            else
+            {
+                StopCoroutine(Shoot());
+                isMoving = true;
+                nav.Resume();
+                nav.destination = Target.position;
+            }
+        }
+    }
+
+    private void StopMoving()
+    {
+        isMoving = false;
+        nav.Stop();
     }
 
     private void CheckHP()
@@ -181,7 +230,8 @@ public class EnemyController : MonoBehaviour
 
     private void Attack()
     {
-        
+        if (shotBullet == null)
+          shotBullet = StartCoroutine(Shoot());
     }
 
     private void OnTriggerEnter(Collider other)

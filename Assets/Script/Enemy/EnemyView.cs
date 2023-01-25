@@ -17,6 +17,11 @@ public class EnemyView : MonoBehaviour
     public EnemyController con;
     private bool OnCombat = false;
 
+    private float ShootRange = 10f;
+    private float SeeRange = 20f;
+    private float CombatRange = 30f;
+    private bool InShootingRange = false;
+
     private void Start()
     {
         con = GetComponent<EnemyController>();
@@ -26,7 +31,7 @@ public class EnemyView : MonoBehaviour
     private void Update()
     {
         FindTarget();
-        CheckCombat();
+        InShootRange();
         SetRange();
     }
 
@@ -37,7 +42,8 @@ public class EnemyView : MonoBehaviour
 
     private void SetRange()
     {
-        viewRange = OnCombat ? 15f : 30f;
+        CheckCombat();
+        viewRange = OnCombat ? SeeRange : CombatRange;
     }
 
     private void SetTarget(Transform trans)
@@ -76,6 +82,35 @@ public class EnemyView : MonoBehaviour
 
     }
 
+    private void InShootRange()
+    {
+        float Range = InShootingRange ? SeeRange : ShootRange;
+        Collider[] colliders = Physics.OverlapSphere(transform.position, Range, PlayerMask);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Vector3 dirToTarget = (colliders[i].transform.position - transform.position).normalized;
+            Vector3 rightDir = AngelToDir(transform.eulerAngles.y + viewAngle * 0.5f);
+
+            if (Vector3.Dot(transform.forward, dirToTarget) < Vector3.Dot(transform.forward, rightDir))
+                continue;
+
+            float distToTarget = Vector3.Distance(transform.position, colliders[i].transform.position);
+
+            if (Physics.Raycast(transform.position, dirToTarget, distToTarget, obstacleMask))
+                continue;
+
+            Debug.DrawRay(transform.position, dirToTarget * distToTarget, Color.blue);
+            InShootingRange = true;
+        }
+
+        if (colliders.Length == 0)
+            InShootingRange = false;
+    }
+
+    public bool isInRange()
+    {
+        return InShootingRange;
+    }
     private Vector3 AngelToDir(float angle)
     {
         float radian = angle * Mathf.Deg2Rad;
