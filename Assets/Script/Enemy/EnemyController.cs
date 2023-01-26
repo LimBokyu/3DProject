@@ -14,14 +14,15 @@ public class EnemyController : MonoBehaviour
     [SerializeField]
     private int m_HP;
 
-    private float moveSpeed = 500f;
-
     [SerializeField] private EnemyState state;
-    private Transform trans;
+
+    [SerializeField]
+    private Vector3 FirstPosition;
     private NavMeshAgent nav;
     private Animator anim;
 
     private Coroutine shotBullet;
+    private Coroutine MoveBackCoroutine;
 
     private EnemyView view;
 
@@ -31,6 +32,7 @@ public class EnemyController : MonoBehaviour
 
     public GameObject Bullet;
     public ParticleSystem gunFlash;
+    public AudioSource gunShot;
 
     [SerializeField]
     private Transform Target;
@@ -56,13 +58,14 @@ public class EnemyController : MonoBehaviour
     {
         m_HP = 100;
         state = EnemyState.Idle;
-        trans = GetComponent<Transform>();
         nav = GetComponent<NavMeshAgent>();
         anim = GetComponent<Animator>();
         view = GetComponent<EnemyView>();
         Target = null;
         shotBullet = null;
+        MoveBackCoroutine = null;
         Ammo = 7;
+        FirstPosition = transform.position;
     }
 
     private void Update()
@@ -95,6 +98,7 @@ public class EnemyController : MonoBehaviour
                 break;
 
             case EnemyState.MoveBack:
+                MoveBack();
                 break;
         }
 
@@ -113,8 +117,10 @@ public class EnemyController : MonoBehaviour
 
     private IEnumerator Shoot()
     {
-        yield return new WaitForSeconds(1.2f);
+        yield return new WaitForSeconds(0.98f);
+        anim.SetBool("OnAttack", true);
         gunFlash.Play();
+        gunShot.Play();
         Instantiate(Bullet, muzzle.position, transform.rotation);
         Ammo -= 1;
         shotBullet = null;
@@ -125,7 +131,6 @@ public class EnemyController : MonoBehaviour
         if (null != view.GetTarget())
         {
             Target = view.GetTarget();
-            OnCombat = true;
             state = EnemyState.Alert;
         }
         else
@@ -135,6 +140,26 @@ public class EnemyController : MonoBehaviour
         }
         // 작은 범위내에
         // 걸리면 state -> alert
+    }
+
+    private void MoveBack()
+    {
+        if (MoveBackCoroutine == null)
+        {
+            Debug.Log("Call MoveBack Coroutine");
+            MoveBackCoroutine = StartCoroutine(BackToFirstPosition());
+        }
+
+        isMoving = true;
+
+        if((FirstPosition - transform.position).sqrMagnitude < 0.5f)
+        {
+            state = EnemyState.Idle;
+            isMoving = false;
+            nav.Stop();
+            StopCoroutine(MoveBackCoroutine);
+            MoveBackCoroutine = null;
+        }
     }
 
     
@@ -170,7 +195,8 @@ public class EnemyController : MonoBehaviour
             state = EnemyState.Move;
         else if(OnCombat)
         {
-          // state = EnemyState.Attack;
+            state = EnemyState.Attack;
+
           // state = EnemyState.Chase;
           // state = EnemyState.Search;
         }
@@ -196,12 +222,31 @@ public class EnemyController : MonoBehaviour
             }
             else
             {
+                if (anim.GetBool("OnAttack"))
+                    anim.SetBool("OnAttack", false);
+
                 StopCoroutine(Shoot());
                 isMoving = true;
                 nav.Resume();
                 nav.destination = Target.position;
+                
             }
         }
+        else
+        {
+            if (view.GetTarget() == null && (nav.destination - transform.position).sqrMagnitude < 0.5f)
+            {
+                isMoving = false;
+                state = EnemyState.MoveBack;
+            }
+        }
+    }
+
+    private IEnumerator BackToFirstPosition()
+    {
+        yield return new WaitForSeconds(2f);
+        nav.Resume();
+        nav.destination = FirstPosition;
     }
 
     private void StopMoving()

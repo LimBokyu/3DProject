@@ -95,7 +95,7 @@ SphereCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7012146785439838691}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 2
@@ -112,8 +112,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79c1790efc36fe540b3b46f342cb0bac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MoveSpeed: 500
-  crash: {fileID: 497103227484748751, guid: 278ab631754151d49ba2f656bc0d82cf, type: 3}
+  MoveSpeed: 30
 --- !u!96 &5292539184429821334
 TrailRenderer:
   serializedVersion: 2
@@ -164,8 +163,17 @@ TrailRenderer:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0
-        value: 1
+        time: 0.01058201
+        value: 1.0135134
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0.31016046
+      - serializedVersion: 3
+        time: 1
+        value: 0
         inSlope: 0
         outSlope: 0
         tangentMode: 0

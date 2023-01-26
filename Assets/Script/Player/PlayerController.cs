@@ -242,6 +242,7 @@ namespace Player
                     Jump();
                     break;
                 case Playerstate.Move:
+                    BladeModeSwitch();
                     Move();
                     Jump();
                     break;
@@ -384,7 +385,6 @@ namespace Player
         {
             if (Input.GetKeyDown(KeyCode.K))
             {
-                flash.Hurt();
                 TakeDamage(150);
             }
 
@@ -424,6 +424,7 @@ namespace Player
 
         public void TakeDamage(int damage)
         {
+            flash.Hurt();
             if (prevHealth != currentHealth)
             {
                 loseHealth = prevHealth;
@@ -691,6 +692,15 @@ namespace Player
             {
                 velocity.y = -2f;
                 anim.SetBool("isJump", false);
+            }
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if(other.tag.Equals("Bullet"))
+            {
+                TakeDamage(100);
+                Destroy(other.gameObject);
             }
         }
     }

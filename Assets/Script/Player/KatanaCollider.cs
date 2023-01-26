@@ -13,6 +13,9 @@ public class KatanaCollider : MonoBehaviour
 
     [SerializeField]
     private ParticleSystem particle;
+
+    [SerializeField]
+    private Transform effect;
     private void Start()
     {
         col= GetComponent<Collider>();
@@ -38,8 +41,7 @@ public class KatanaCollider : MonoBehaviour
         if(collision.tag.Equals("Bullet"))
         {
             Debug.Log("Particle Play");
-            Transform trans = collision.transform;
-            particle.transform.position = trans.position;
+            effect.position = collision.transform.position;
             particle.Play();
         }
     }
