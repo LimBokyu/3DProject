@@ -35,6 +35,9 @@ public class EnemyController : MonoBehaviour
     [SerializeField]
     private Transform Target;
 
+    [SerializeField]
+    private int Ammo;
+
     private Vector3 dir;
 
     //======== state of bool =========
@@ -59,6 +62,7 @@ public class EnemyController : MonoBehaviour
         view = GetComponent<EnemyView>();
         Target = null;
         shotBullet = null;
+        Ammo = 7;
     }
 
     private void Update()
@@ -110,9 +114,9 @@ public class EnemyController : MonoBehaviour
     private IEnumerator Shoot()
     {
         yield return new WaitForSeconds(1.2f);
-        float y = muzzle.transform.eulerAngles.y;
-        float z = muzzle.transform.eulerAngles.z;
-        Instantiate(Bullet, muzzle.position, transform.rotation); //Quaternion.Euler(0f, y, z));
+        gunFlash.Play();
+        Instantiate(Bullet, muzzle.position, transform.rotation);
+        Ammo -= 1;
         shotBullet = null;
     }
 

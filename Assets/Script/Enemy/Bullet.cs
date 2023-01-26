@@ -16,9 +16,9 @@ public class Bullet : MonoBehaviour
         rig.AddForce(transform.forward * MoveSpeed);
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerEnter(Collider other)
     {
-        if(collision.transform.tag.Equals("Weapon"))
+        if(other.transform.tag.Equals("Weapon"))
         {
             Cutoff();
         }
@@ -26,8 +26,6 @@ public class Bullet : MonoBehaviour
 
     private void Cutoff()
     {
-        MoveSpeed = 0;
-        crash.Play();
         Debug.Log("CutBullet");
         Destroy(gameObject);
     }

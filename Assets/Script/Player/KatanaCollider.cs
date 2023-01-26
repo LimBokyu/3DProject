@@ -11,6 +11,8 @@ public class KatanaCollider : MonoBehaviour
     [SerializeField]
     private UnityEvent regain;
 
+    [SerializeField]
+    private ParticleSystem particle;
     private void Start()
     {
         col= GetComponent<Collider>();
@@ -31,6 +33,14 @@ public class KatanaCollider : MonoBehaviour
         {
             Debug.Log("Katana On Hit Enemy!");
             regain?.Invoke();
+        }
+
+        if(collision.tag.Equals("Bullet"))
+        {
+            Debug.Log("Particle Play");
+            Transform trans = collision.transform;
+            particle.transform.position = trans.position;
+            particle.Play();
         }
     }
 
