@@ -5,9 +5,7 @@ using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.AI;
 
-enum EnemyState { Idle, Attack, Alert, Patrol, MoveBack, Dead, Search, Chase, Move }
-enum IdleState { None, Idle, Patrol, MoveBack }
-enum CombatState { None, Attack, Alert, Search, Chase }
+enum EnemyState { Idle, Attack, Alert, Patrol, MoveBack, Dead, Search, Move }
 
 public class EnemyController : MonoBehaviour
 {
@@ -27,8 +25,6 @@ public class EnemyController : MonoBehaviour
     private EnemyView view;
 
     public Transform muzzle;
-    public Transform PatrolPoint1;
-    public Transform PatrolPoint2;
 
     public GameObject Bullet;
     public ParticleSystem gunFlash;
@@ -46,7 +42,6 @@ public class EnemyController : MonoBehaviour
     private bool isMoving = false;
     private bool isDead = false;
     private bool onDamaged = false;
-    private bool findEnemy = false;
     private bool EnemySearch = false;
     private bool OnCombat = false;
     private bool InShootingRange = false;
@@ -74,9 +69,6 @@ public class EnemyController : MonoBehaviour
         {
             case EnemyState.Dead:
                 Dead();
-                break;
-
-            case EnemyState.Chase:
                 break;
 
             case EnemyState.Idle:
@@ -144,6 +136,8 @@ public class EnemyController : MonoBehaviour
 
     private void MoveBack()
     {
+        OnCombat = false;
+
         if (MoveBackCoroutine == null)
         {
             Debug.Log("Call MoveBack Coroutine");
@@ -162,19 +156,6 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    
-    private void SetTarget()
-    {
-        if (null != view.GetTarget())
-        {
-            Target = view.GetTarget();
-            Target.position = view.GetTarget().position;
-        }
-        else
-        { Target = null; }
-    }
-
-
     private void UpdateAnim()
     {
         anim.SetBool("isMoving",isMoving);
@@ -185,21 +166,31 @@ public class EnemyController : MonoBehaviour
         
     }
 
+    public bool GetSearch()
+    {
+        return EnemySearch;
+    }
+
     private void StateUpdate()
     {
         if (isDead)
             state = EnemyState.Dead;
-        else if (onDamaged)
-            state = EnemyState.Alert;
-        else if (isMoving)
-            state = EnemyState.Move;
-        else if(OnCombat)
+        else if (!OnCombat)
         {
-            state = EnemyState.Attack;
-
-          // state = EnemyState.Chase;
-          // state = EnemyState.Search;
+            if (onDamaged)
+                state = EnemyState.Alert;
+            else if (isMoving)
+                state = EnemyState.Move;
         }
+        else if (OnCombat)
+        {
+            if (Target != null)
+                state = EnemyState.Attack;
+            else if (EnemySearch)
+                state = EnemyState.Search;
+        }
+        else
+            state = EnemyState.Idle;
     }
 
     private void Alert()
@@ -218,6 +209,8 @@ public class EnemyController : MonoBehaviour
                 dir.y = 0f;
                 Quaternion rot = Quaternion.LookRotation(dir.normalized);
                 transform.rotation = rot;
+                if (EnemySearch)
+                    EnemySearch = !EnemySearch;
                 StopMoving();
             }
             else
@@ -279,6 +272,14 @@ public class EnemyController : MonoBehaviour
 
     private void Attack()
     {
+        onDamaged = false;
+        if (OnCombat && view.GetTarget() == null)
+        {
+            EnemySearch = true;
+            return;
+        }
+            
+
         if (shotBullet == null)
           shotBullet = StartCoroutine(Shoot());
     }

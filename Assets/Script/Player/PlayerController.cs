@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using Cinemachine;
-using Unity.VisualScripting;
-using UnityEditor.UIElements;
 using UnityEngine.Rendering.PostProcessing;
 
 enum Playerstate { Idle, Move, Attack, Dodge, BladeMode, Hurt, Dash }

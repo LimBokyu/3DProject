@@ -17,6 +17,9 @@ public class EnemyView : MonoBehaviour
     public EnemyController con;
     private bool OnCombat = false;
 
+    private float NormalAngle;
+    private float SearchAngle;
+
     private float ShootRange = 10f;
     private float SeeRange = 20f;
     private float CombatRange = 30f;
@@ -25,7 +28,10 @@ public class EnemyView : MonoBehaviour
     private void Start()
     {
         con = GetComponent<EnemyController>();
-        viewAngle = 120f;
+        NormalAngle = 120f;
+        SearchAngle = 360f;
+
+        viewAngle = NormalAngle;
     }
 
     private void Update()
@@ -44,6 +50,7 @@ public class EnemyView : MonoBehaviour
     {
         CheckCombat();
         viewRange = OnCombat ? SeeRange : CombatRange;
+        viewAngle = con.GetSearch() ? SearchAngle : NormalAngle;
     }
 
     private void SetTarget(Transform trans)
