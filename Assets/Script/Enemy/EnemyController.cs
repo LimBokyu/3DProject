@@ -34,9 +34,13 @@ public class EnemyController : MonoBehaviour
     private Transform Target;
 
     [SerializeField]
+    private LayerMask alliesMask;
+
+    [SerializeField]
     private int Ammo;
 
     private Vector3 dir;
+    private float rotTimer = 0;
 
     //======== state of bool =========
     private bool isMoving = false;
@@ -45,6 +49,7 @@ public class EnemyController : MonoBehaviour
     private bool EnemySearch = false;
     private bool OnCombat = false;
     private bool InShootingRange = false;
+    private bool onHit = false;
     //================================
 
 
@@ -156,6 +161,12 @@ public class EnemyController : MonoBehaviour
         }
     }
 
+
+    private void Reload()
+    {
+        //anim.SetBool();
+        Ammo = 7;
+    }
     private void UpdateAnim()
     {
         anim.SetBool("isMoving",isMoving);
@@ -193,10 +204,29 @@ public class EnemyController : MonoBehaviour
             state = EnemyState.Idle;
     }
 
-    private void Alert()
+    public void Alert()
     {
         OnCombat = true;
+        if(onHit)
+            CheckNearAllies();
         Attack();
+    }
+
+    private void CheckNearAllies()
+    {
+        Collider[] col = Physics.OverlapSphere(transform.position, 4.5f, alliesMask);
+        EnemyController ec = new EnemyController();
+        for (int index = 0; index < col.Length; index++)
+        {
+            if (col[index].transform == this.transform)
+                continue;
+
+            ec = col[index].GetComponent<EnemyController>();
+            if(ec != null)
+                ec.Alert();
+        }
+        onHit = false;
+        ec = null;
     }
 
     private void Move()
@@ -205,10 +235,12 @@ public class EnemyController : MonoBehaviour
         {
             if (view.isInRange())
             {
+                rotTimer += Time.deltaTime;
                 dir = Target.position - transform.position;
                 dir.y = 0f;
                 Quaternion rot = Quaternion.LookRotation(dir.normalized);
-                transform.rotation = rot;
+
+                transform.forward = Vector3.Lerp(transform.forward, dir, rotTimer);
                 if (EnemySearch)
                     EnemySearch = !EnemySearch;
                 StopMoving();
@@ -222,7 +254,6 @@ public class EnemyController : MonoBehaviour
                 isMoving = true;
                 nav.Resume();
                 nav.destination = Target.position;
-                
             }
         }
         else
@@ -265,6 +296,7 @@ public class EnemyController : MonoBehaviour
     public void TakeDamage(int damage)
     {
         onDamaged = true;
+        onHit = true;
         m_HP -= damage;
         string TestText = damage.ToString() + " 데미지를 입어 체력이 " + m_HP.ToString() + " 남았습니다";
         Debug.Log(TestText);

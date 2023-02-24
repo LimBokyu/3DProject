@@ -1,8 +1,8 @@
+using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using Cinemachine;
 using UnityEngine.Rendering.PostProcessing;
 
 enum Playerstate { Idle, Move, Attack, Dodge, BladeMode, Hurt, Dash }
@@ -55,6 +55,9 @@ namespace Player
         private float ZoomVig = 0.6f;
         private float NormalChrom = 0f;
         private float ZoomChrom = 1f;
+        private float cutTimer = 0.2f;
+        private bool cutable = true;
+        private Coroutine cutcool = null;
         //======================================
         [Space]
 
@@ -449,7 +452,7 @@ namespace Player
 
         public void BladeMode()
         {
-
+            if(!BladeAttack)
             CutPlane.Rotate(0f, 0f, Input.GetAxisRaw("Horizontal") * Time.unscaledDeltaTime * 100);
 
             if (OnBladeMode)
@@ -459,12 +462,15 @@ namespace Player
                     BladeStart?.Invoke();
                     CameraShake();
                     BladeAttack = true;
+                    cutable = false;
+                    if(cutcool == null)
+                        cutcool = StartCoroutine(CutCoolTime());
                 }
 
                 if (BladeAttack)
                 {
                     attackTimer += Time.unscaledDeltaTime;
-                    if (attackTimer >= 0.15f)
+                    if (attackTimer >= cutTimer)
                     {
                         BladeEnd?.Invoke();
                         attackTimer = 0;
@@ -472,6 +478,17 @@ namespace Player
                     }
                 }
             }
+        }
+
+        private IEnumerator CutCoolTime()
+        {
+            yield return new WaitForSecondsRealtime(cutTimer);
+            cutable = true;
+            cutcool = null;
+            float ran = Random.Range(10f, 30f);
+            int randompos = Random.Range(0, 2);
+            float positive = randompos == 0 ? 1f : -1f;
+            CutPlane.Rotate(0f, 0f, ran * positive);
         }
 
         public void ModeChanger(bool BladeMode)
