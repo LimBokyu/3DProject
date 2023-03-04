@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2237,7 +2237,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ImpulseDefinition:
-    m_ImpulseChannel: 1
+    m_ImpulseChannel: 0
     m_ImpulseShape: 2
     m_CustomImpulseShape:
       serializedVersion: 2
@@ -5951,7 +5951,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1837188093}
-  m_LocalRotation: {x: 0.018681806, y: 0.0000000010752111, z: -2.0090393e-11, w: 0.9998255}
+  m_LocalRotation: {x: 0.018681806, y: -0.0000000010752111, z: 2.0090393e-11, w: 0.9998255}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -6635,6 +6635,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1922192238}
+  - component: {fileID: 1922192244}
+  - component: {fileID: 1922192243}
+  - component: {fileID: 1922192242}
   - component: {fileID: 1922192240}
   - component: {fileID: 1922192239}
   - component: {fileID: 1922192241}
@@ -6726,6 +6729,54 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  moveSpeed: 10
+  jumpSpeed: 5
+  controller: {fileID: 1922192239}
+  groundCheck: {fileID: 2052713437}
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 128
+  anim: {fileID: 0}
+  MaxConcentrate: 500
+  maxHealth: 500
+  prevHealth: 0
+  loseHealth: 0
+  currentHealth: 0
+  concentrate: 0
+--- !u!95 &1922192241
+Animator:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1922192237}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: 77d947c01609a804893ad7700498885f, type: 3}
+  m_Controller: {fileID: 9100000, guid: 90f44bf03e1822d458c3397942a6663a, type: 2}
+  m_CullingMode: 1
+  m_UpdateMode: 2
+  m_ApplyRootMotion: 1
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &1922192242
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1922192237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d33dd091192ff648bee8a2abc3d1f5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  timemanager: {fileID: 2009738534}
+  CutPlane: {fileID: 363365335}
   BladeStart:
     m_PersistentCalls:
       m_Calls:
@@ -6756,44 +6807,33 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  timemanager: {fileID: 2009738534}
-  CutPlane: {fileID: 363365335}
-  CineMachine: {fileID: 963194229}
-  PlayerCamera: {fileID: 1098191123}
-  zoomOffset: {x: 0.6, y: 0, z: 0}
-  moveSpeed: 10
-  jumpSpeed: 5
-  controller: {fileID: 1922192239}
-  groundCheck: {fileID: 2052713437}
-  groundMask:
-    serializedVersion: 2
-    m_Bits: 128
-  MaxConcentrate: 500
-  maxHealth: 500
-  prevHealth: 0
-  loseHealth: 0
-  currentHealth: 0
-  concentrate: 0
---- !u!95 &1922192241
-Animator:
-  serializedVersion: 4
+--- !u!114 &1922192243
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1922192237}
   m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: 77d947c01609a804893ad7700498885f, type: 3}
-  m_Controller: {fileID: 9100000, guid: 90f44bf03e1822d458c3397942a6663a, type: 2}
-  m_CullingMode: 1
-  m_UpdateMode: 2
-  m_ApplyRootMotion: 1
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 585fdfd1864f8a24fadefa16a7d5c335, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cam: {fileID: 0}
+  freeLook: {fileID: 1098191123}
+  zoomOffset: {x: 0.6, y: 0, z: 0}
+--- !u!114 &1922192244
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1922192237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 613f25fe1eda6394f82ad48715cab131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1960108493
 GameObject:
   m_ObjectHideFlags: 0
