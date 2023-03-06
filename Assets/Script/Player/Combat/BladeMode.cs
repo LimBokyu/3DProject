@@ -45,7 +45,7 @@ public class BladeMode : MonoBehaviour
             if (Input.GetButtonDown("Fire1"))
             {
                 BladeStart?.Invoke();
-                CameraShake();
+                playerCam.CameraShake();
                 BladeAttack = true;
                 cutable = false;
                 if (cutcool == null)
@@ -99,10 +99,4 @@ public class BladeMode : MonoBehaviour
         else
             flash.BladeFlash();
     }
-
-    private void CameraShake()
-    {
-        playerCam.freeLook.GetComponent<CinemachineImpulseSource>().GenerateImpulse();
-    }
-
 }

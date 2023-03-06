@@ -140,6 +140,26 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
+    public void DashAttackEnd()
+    {
+        if (!dashAttackOrder)
+            return;
+
+        dashAttackOrder = false;
+        playercontroller.anim.SetBool("SlashAgain", false);
+        playercontroller.anim.SetBool("DashAttack", false);
+        if (attackTimer != 0)
+            attackTimer = 0;
+    }
+
+    private void ContinueDashAttack()
+    {
+        if(Input.GetButton("Fire1") && !Combo)
+        {
+            Combo = true;
+        }
+    }
+
     public void DashAttack()
     {
         if (!dashAttackOrder)
@@ -153,10 +173,10 @@ public class PlayerAttack : MonoBehaviour
         key += keynumber.ToString();
         dashAttack.TryGetValue(key,out dashattack);
 
-        if(dashattack.startattack <= attackTimer
+        if (dashattack.startattack <= attackTimer
             && dashattack.endanim > attackTimer)
         {
-            CheckCombo();
+            ContinueDashAttack();
         }
 
         if(dashattack.startattack <= attackTimer &&

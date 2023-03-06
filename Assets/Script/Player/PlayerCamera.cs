@@ -6,10 +6,9 @@ using UnityEngine;
 
 public class PlayerCamera : MonoBehaviour
 {
-    public Camera cam;
-    private CinemachineBrain brain;
-    private CinemachineComposer[] composers;
-    public CinemachineFreeLook freeLook;
+    private Camera cam;
+    [SerializeField] private CinemachineComposer[] composers;
+    [SerializeField] private CinemachineFreeLook freeLook;
     private float normalFov = 30;
     private float zoomFov = 15;
     public Vector3 zoomOffset;
@@ -18,7 +17,6 @@ public class PlayerCamera : MonoBehaviour
     private void Start()
     {
         cam = Camera.main;
-        brain = cam.GetComponent<CinemachineBrain>();
         CameraSet();
     }
     private IEnumerator Settingoffset(float start, float end, bool OnBladeMode)
@@ -115,5 +113,8 @@ public class PlayerCamera : MonoBehaviour
         }
     }
 
-
+    public void CameraShake()
+    {
+        freeLook.GetComponent<CinemachineImpulseSource>().GenerateImpulse();
+    }
 }

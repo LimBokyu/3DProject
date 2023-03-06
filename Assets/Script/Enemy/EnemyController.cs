@@ -22,6 +22,7 @@ public class EnemyController : MonoBehaviour
 
     private Coroutine shotBullet;
     private Coroutine MoveBackCoroutine;
+    private Coroutine reload = null;
 
     private EnemyView view;
 
@@ -43,6 +44,9 @@ public class EnemyController : MonoBehaviour
     private Vector3 dir;
     private float rotTimer = 0;
     private float rotationpercent = 1.5f;
+
+    [SerializeField]
+    private float reloadtimer = 0;
 
     //======== state of bool =========
     private bool isMoving = false;
@@ -68,6 +72,15 @@ public class EnemyController : MonoBehaviour
         MoveBackCoroutine = null;
         Ammo = 7;
         FirstPosition = transform.position;
+
+        
+        foreach(AnimationClip clip in anim.runtimeAnimatorController.animationClips)
+        {
+            if(clip.name == "Reloading")
+            {
+                reloadtimer = clip.length;
+            }
+        }
     }
 
     private void Update()
@@ -166,8 +179,17 @@ public class EnemyController : MonoBehaviour
 
     private void Reload()
     {
-        //anim.SetBool();
+        if(reload == null)
+            reload = StartCoroutine(ReloadCoroutine());
+    }
+
+    private IEnumerator ReloadCoroutine()
+    {
+        anim.SetBool("Reload", true);
+        yield return new WaitForSeconds(reloadtimer);
+        anim.SetBool("Reload", false);
         Ammo = 7;
+        reload = null;
     }
     private void UpdateAnim()
     {
@@ -210,6 +232,7 @@ public class EnemyController : MonoBehaviour
     {
         OnCombat = true;
         firstlookat = transform.forward;
+        anim.SetBool("Alert",true);
         if (onHit)
             CheckNearAllies();
         Attack();
@@ -308,16 +331,23 @@ public class EnemyController : MonoBehaviour
 
     private void Attack()
     {
-        onDamaged = false;
-        if (OnCombat && view.GetTarget() == null)
+        if(Ammo == 0)
         {
-            EnemySearch = true;
-            return;
+            Reload();
         }
-            
+        else
+        {
+            onDamaged = false;
+            if (OnCombat && view.GetTarget() == null)
+            {
+                EnemySearch = true;
+                return;
+            }
 
-        if (shotBullet == null)
-          shotBullet = StartCoroutine(Shoot());
+
+            if (shotBullet == null)
+                shotBullet = StartCoroutine(Shoot());
+        }
     }
 
     private void OnTriggerEnter(Collider other)

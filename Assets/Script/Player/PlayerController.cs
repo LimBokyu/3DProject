@@ -80,6 +80,7 @@ namespace Player
                 case Playerstate.Idle:
                     BladeModeSwitch();
                     playerattack.AttackOrder();
+                    playerattack.DashAttackEnd();
                     Move();
                     Jump();
                     break;
