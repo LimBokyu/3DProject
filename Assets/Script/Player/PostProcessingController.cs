@@ -11,6 +11,20 @@ public class PostProcessingController : MonoBehaviour
     private float ZoomVig = 0.6f;
     private float NormalChrom = 0f;
     private float ZoomChrom = 1f;
+
+    private Color blademodecolor;
+    private Color overdrivecolor;
+
+    private float overdriveintencity = 0.4f;
+    private float overdrivesmoothness = 0.8f;
+
+    //private void Start()
+    //{
+    //    blademodecolor = new Color(72f,168f,214f,255f);
+    //    overdrivecolor = new Color(214f, 72f, 88f, 255f);
+
+    //    //Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<Vignette>().color.value = blademodecolor;
+    //}
     private IEnumerator SetChrom(float beginchrom, float endchrom, bool OnBladeMode)
     {
         float chromval = 0.2f;
@@ -85,6 +99,7 @@ public class PostProcessingController : MonoBehaviour
     private void CameraVigSet(float vigval)
     {
         Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<Vignette>().intensity.value = vigval;
+        //Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<Vignette>().color.value = Color.red;
     }
 
     private void CameraChromSet(float chromval)

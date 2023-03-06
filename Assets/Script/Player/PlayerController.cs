@@ -11,19 +11,15 @@ namespace Player
         Camera cam;
         [Header("PlayerState")]
         //=========== PlayerState ==============
-        private Playerstate state;
+        [SerializeField] private Playerstate state;
         private bool OnDamaged = false;
         private bool OnBladeMode = false;
-        private bool BladeAttack = false;
         private bool Moving = false;
         //======================================
         [Space]
 
         [Header("Player UI")]
         //============= Player UI ==============
-        public HealthBar healthBar;
-        public RegainBar RegainBar;
-        public ConcentrateBar ConcentrateBar;
         public ScreenFlash flash;
         //======================================
         [Space]
@@ -32,6 +28,7 @@ namespace Player
         //============= BladeMode ==============
         private BladeMode bladeMode;
         private PlayerAttack playerattack;
+        private PlayerHealth health;
         //======================================
         [Space]
 
@@ -58,28 +55,13 @@ namespace Player
         public Animator anim;
         //======================================
 
-        //=============== Timer =================
-        private float regainTimer = 0;
-        private float attackTimer = 0;
-        //=======================================
-
-        [Header("PlayerStatus")]
-        //========== PlayerStatus ===============
-        [SerializeField] private int MaxConcentrate = 500;
-        [SerializeField] private int maxHealth = 500;
-        [SerializeField] private int prevHealth;
-        [SerializeField] private int loseHealth;
-        [SerializeField] private int currentHealth;
-        [SerializeField] private int concentrate;
-        //=======================================
-
-
         private void Awake()
         {
             controller = GetComponent<CharacterController>();
             anim = GetComponentInChildren<Animator>();
             bladeMode = GetComponent<BladeMode>();
             playerattack= GetComponent<PlayerAttack>();
+            health = GetComponent<PlayerHealth>();
         }
 
         public void Start()
@@ -87,16 +69,8 @@ namespace Player
             cam = Camera.main;
             state = Playerstate.Idle;
             Cursor.lockState = CursorLockMode.Locked;
-            PlayerUISet();
-            SetHealth();
-        }
-
-        public void PlayerUISet()
-        {
-            currentHealth = maxHealth;
-            prevHealth = maxHealth;
-            loseHealth = maxHealth;
-            concentrate = MaxConcentrate;
+            health.PlayerUISet();
+            health.SetHealth();
         }
 
         public void Update()
@@ -105,7 +79,7 @@ namespace Player
             {
                 case Playerstate.Idle:
                     BladeModeSwitch();
-                    playerattack.Attack();
+                    playerattack.AttackOrder();
                     Move();
                     Jump();
                     break;
@@ -125,10 +99,10 @@ namespace Player
 
             StateUpdate();
             DamageTest();
-            SetHealth();
-            Regain();
+            health.SetHealth();
+            health.Regain();
             IsGround();
-            TestConcentrate();
+            ConcentrateControl();
         }
 
         public void StateUpdate()
@@ -151,41 +125,19 @@ namespace Player
             }
         }
 
-        public void SetHealth()
-        {
-            if (currentHealth > prevHealth)
-            {
-                prevHealth = currentHealth;
-                loseHealth = currentHealth;
-            }
 
-            healthBar.SetMaxHealth(maxHealth);
-            healthBar.SetHealth(currentHealth);
-
-            RegainBar.SetMaxRegainHealth(maxHealth);
-            RegainBar.SetRegainHealth(loseHealth);
-
-            ConcentrateBar.SetMax(MaxConcentrate);
-            ConcentrateBar.SetGage(concentrate);
-        }
 
         // 테스트용 함수 테스트 끝나면 제거할것
         public void DamageTest()
         {
             if (Input.GetKeyDown(KeyCode.K))
             {
-                TakeDamage(150);
-            }
-
-            if (Input.GetKeyDown(KeyCode.J))
-            {
-                concentrate = MaxConcentrate;
+                health.TakeDamage(150);
             }
         }
 
         public void Move()
         {
-            string MoveSpeed = "MoveSpeed";
             Vector3 moveVec = InputMove();
             controller.Move(moveVec * moveSpeed * Time.deltaTime);
 
@@ -195,7 +147,7 @@ namespace Player
             Moving = moveVec.sqrMagnitude != 0 ? true : false;
 
             anim.SetBool("isMoving", Moving);
-            anim.SetFloat(MoveSpeed, moveVec.sqrMagnitude);
+            anim.SetFloat("MoveSpeed", moveVec.sqrMagnitude);
         }
 
         public Vector3 InputMove()
@@ -211,24 +163,6 @@ namespace Player
             return moveVec;
         }
 
-        public void TakeDamage(int damage)
-        {
-            flash.Hurt();
-            if (prevHealth != currentHealth)
-            {
-                loseHealth = prevHealth;
-            }
-
-            prevHealth = currentHealth;
-            currentHealth -= damage;
-            OnDamaged = true;
-            regainTimer = 0;
-            if (currentHealth <= 0)
-            {
-                PlayerDead();
-            }
-        }
-
         public void BladeModeSwitch()
         {
             if (Input.GetKeyDown(KeyCode.Tab))
@@ -239,9 +173,9 @@ namespace Player
             }
         }
 
-        public void TestConcentrate()
+        public void ConcentrateControl()
         {
-            if (concentrate == 0)
+            if (health.GetConcentrate() == 0)
             {
                 bladeMode.ModeChanger(OnBladeMode);
                 transform.rotation = Quaternion.Euler(0, transform.rotation.y, 0).normalized;
@@ -254,50 +188,7 @@ namespace Player
             }
             else
             {
-                if (concentrate >= MaxConcentrate)
-                {
-                    return;
-                }
-                concentrate++;
-            }
-        }
-
-        public void Regain()
-        {
-            if (OnDamaged)
-            {
-                if (prevHealth <= loseHealth)
-                {
-                    loseHealth--;
-                }
-
-                regainTimer += Time.deltaTime;
-                if (regainTimer > 3f)
-                {
-                    prevHealth--;
-                    if (prevHealth <= currentHealth)
-                    {
-                        OnDamaged = false;
-                        regainTimer = 0;
-                        prevHealth = currentHealth;
-                    }
-                }
-            }
-        }
-
-        public void RegainHealth()
-        {
-            Debug.Log("RegainHealth");
-            int count = 0;
-            while (currentHealth < prevHealth)
-            {
-                Debug.Log("Health+1");
-                currentHealth++;
-                count++;
-                if (count == 10)
-                {
-                    break;
-                }
+                health.ChargeConcentrate();
             }
         }
 
@@ -333,7 +224,7 @@ namespace Player
         {
             if(other.tag.Equals("Bullet"))
             {
-                TakeDamage(100);
+                health.TakeDamage(100);
                 Destroy(other.gameObject);
             }
         }

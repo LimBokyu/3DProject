@@ -13,4 +13,33 @@ public class KatanaTest : MonoBehaviour
             Destroy(gameObject); 
         }
     }
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.tag.Equals("Weapon"))
+        {
+            Debug.Log("Damaged!");
+            Destroy(gameObject);
+        }
+    }
+
+    private IEnumerator DamageCoroutine()
+    {
+        float elapsed = 0f;
+        float waitTime = 1f;
+
+        while (elapsed < waitTime)
+        {
+            if (Time.timeScale > 0f)
+            {
+                elapsed += Time.deltaTime;
+            }
+            else
+            {
+                elapsed += Time.unscaledDeltaTime;
+            }
+
+            yield return null;
+        }
+    }
 }

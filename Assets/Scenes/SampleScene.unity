@@ -637,7 +637,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 225643534}
-  m_LocalRotation: {x: 0.00528861, y: -0.000000017220836, z: 9.107557e-11, w: 0.99998605}
+  m_LocalRotation: {x: 0.0052886093, y: 0.00000001720194, z: -9.097561e-11, w: 0.99998605}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2120,7 +2120,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0.005288611, y: -0.00000003442278, z: 1.8205122e-10, w: 0.99998605}
+  m_LocalRotation: {x: 0.0052886093, y: 0.00000003442278, z: -1.8205117e-10, w: 0.99998605}
   m_LocalPosition: {x: 0, y: 1.7, z: -5.35}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -6636,8 +6636,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1922192238}
   - component: {fileID: 1922192244}
+  - component: {fileID: 1922192245}
   - component: {fileID: 1922192243}
   - component: {fileID: 1922192242}
+  - component: {fileID: 1922192246}
   - component: {fileID: 1922192240}
   - component: {fileID: 1922192239}
   - component: {fileID: 1922192241}
@@ -6695,54 +6697,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b90e341b495025468fa4217ea6a2c16, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthBar: {fileID: 1985485802}
-  RegainBar: {fileID: 1094199167}
-  ConcentrateBar: {fileID: 1903611758}
+  state: 0
   flash: {fileID: 653510210}
-  AttackStart:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 974653528}
-        m_TargetAssemblyTypeName: KatanaCollider, Assembly-CSharp
-        m_MethodName: OnAttack
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-  AttackEnd:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 974653528}
-        m_TargetAssemblyTypeName: KatanaCollider, Assembly-CSharp
-        m_MethodName: AttackEnd
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
   moveSpeed: 10
   jumpSpeed: 5
   controller: {fileID: 1922192239}
   groundCheck: {fileID: 2052713437}
   groundMask:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 512
   anim: {fileID: 0}
-  MaxConcentrate: 500
-  maxHealth: 500
-  prevHealth: 0
-  loseHealth: 0
-  currentHealth: 0
-  concentrate: 0
 --- !u!95 &1922192241
 Animator:
   serializedVersion: 4
@@ -6834,6 +6798,70 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 613f25fe1eda6394f82ad48715cab131, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1922192245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1922192237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33db7cb29e7853c4abd88ba7972a0c91, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AttackCount: 0
+  AttackStart:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 974653528}
+        m_TargetAssemblyTypeName: KatanaCollider, Assembly-CSharp
+        m_MethodName: OnAttack
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  AttackEnd:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 974653528}
+        m_TargetAssemblyTypeName: KatanaCollider, Assembly-CSharp
+        m_MethodName: AttackEnd
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &1922192246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1922192237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0230566115d673418c709922b3ee621, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  healthBar: {fileID: 1985485802}
+  RegainBar: {fileID: 1094199167}
+  ConcentrateBar: {fileID: 1903611758}
+  MaxConcentrate: 500
+  maxHealth: 500
+  prevHealth: 0
+  loseHealth: 0
+  currentHealth: 0
+  concentrate: 0
 --- !u!1 &1960108493
 GameObject:
   m_ObjectHideFlags: 0

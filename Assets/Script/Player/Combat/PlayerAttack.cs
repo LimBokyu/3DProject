@@ -7,6 +7,7 @@ using UnityEngine.Events;
 public class PlayerAttack : MonoBehaviour
 {
     private Dictionary<string, AttackTime> MeleeAttack;
+    private Dictionary<string, AttackTime> dashAttack;
     public int AttackCount = 0;
     private bool Combo = false;
     private bool CallNextAttack = false;
@@ -16,6 +17,7 @@ public class PlayerAttack : MonoBehaviour
     public UnityEvent AttackEnd;
     private PlayerController playercontroller;
     private float attackTimer = 0;
+    private bool isRight = true;
 
     private void Awake()
     {
@@ -26,18 +28,21 @@ public class PlayerAttack : MonoBehaviour
     {
         SetAttack();
     }
+
+    public void AttackOrder()
+    {
+        if (Input.GetButtonDown("Fire1"))
+        {
+            key = "melee";
+            AttackCount = 1;
+            key += AttackCount.ToString();
+            playercontroller.anim.SetBool(key, true);
+        }
+    }
     public void Attack()
     {
         if (AttackCount == 0)
-        {
-            if (Input.GetButtonDown("Fire1"))
-            {
-                key = "melee";
-                AttackCount = 1;
-                key += AttackCount.ToString();
-                playercontroller.anim.SetBool(key, true);
-            }
-        }
+            return;
 
 
         if (CallNextAttack)
@@ -112,5 +117,33 @@ public class PlayerAttack : MonoBehaviour
         MeleeAttack.Add(name, new AttackTime(name, 0.2f, 0.7f, 1.05f));
         name = "melee3";
         MeleeAttack.Add(name, new AttackTime(name, 0.02f, 1.01f, 1.3f));
+    }
+
+    private void SetDashAttack()
+    {
+        dashAttack = new Dictionary<string, AttackTime>();
+        string name;
+        name = "DashAttack1";
+        dashAttack.Add(name, new AttackTime(name, 0.2f, 0.7f, 1.15f));
+        name = "DashAttack2";
+        dashAttack.Add(name, new AttackTime(name, 0.2f, 0.7f, 1.15f));
+
+    }
+
+    public void DashAttack()
+    {
+        
+    }
+
+    private void SetSlashDirection()
+    {
+        if(isRight)
+        {
+
+        }
+        else
+        {
+
+        }
     }
 }

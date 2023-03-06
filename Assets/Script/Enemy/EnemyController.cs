@@ -16,6 +16,7 @@ public class EnemyController : MonoBehaviour
 
     [SerializeField]
     private Vector3 FirstPosition;
+    private Vector3 firstlookat;
     private NavMeshAgent nav;
     private Animator anim;
 
@@ -41,6 +42,7 @@ public class EnemyController : MonoBehaviour
 
     private Vector3 dir;
     private float rotTimer = 0;
+    private float rotationpercent = 1.5f;
 
     //======== state of bool =========
     private bool isMoving = false;
@@ -207,7 +209,8 @@ public class EnemyController : MonoBehaviour
     public void Alert()
     {
         OnCombat = true;
-        if(onHit)
+        firstlookat = transform.forward;
+        if (onHit)
             CheckNearAllies();
         Attack();
     }
@@ -236,11 +239,12 @@ public class EnemyController : MonoBehaviour
             if (view.isInRange())
             {
                 rotTimer += Time.deltaTime;
+                float per = rotTimer / rotationpercent;
                 dir = Target.position - transform.position;
                 dir.y = 0f;
                 Quaternion rot = Quaternion.LookRotation(dir.normalized);
 
-                transform.forward = Vector3.Lerp(transform.forward, dir, rotTimer);
+                transform.forward = Vector3.Lerp(firstlookat, dir, per);
                 if (EnemySearch)
                     EnemySearch = !EnemySearch;
                 StopMoving();
