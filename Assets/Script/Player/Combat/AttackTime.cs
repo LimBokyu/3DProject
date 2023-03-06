@@ -6,9 +6,9 @@ public class AttackTime
 {
 
     private string name;
-    private float startattack;
-    private float endattack;
-    private float endanim;
+    public float startattack { get; set; }
+    public float endattack { get; set; }
+    public float endanim { get; set; }
 
     public AttackTime(string name, float Start, float End, float endanim)
     {
@@ -18,18 +18,4 @@ public class AttackTime
         this.endanim = endanim;
     }
 
-    public float GetStart()
-    {
-        return startattack;
-    }
-
-    public float GetEnd()
-    {
-        return endattack;
-    }
-
-    public float GetEndAnim()
-    {
-        return endanim;
-    }
 }

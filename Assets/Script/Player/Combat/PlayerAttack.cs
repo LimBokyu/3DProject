@@ -16,8 +16,9 @@ public class PlayerAttack : MonoBehaviour
     public UnityEvent AttackStart;
     public UnityEvent AttackEnd;
     private PlayerController playercontroller;
-    private float attackTimer = 0;
+    [SerializeField] private float attackTimer = 0;
     private bool isRight = true;
+    [SerializeField] private bool dashAttackOrder = false;
 
     private void Awake()
     {
@@ -27,6 +28,7 @@ public class PlayerAttack : MonoBehaviour
     private void Start()
     {
         SetAttack();
+        SetDashAttack();
     }
 
     public void AttackOrder()
@@ -69,20 +71,20 @@ public class PlayerAttack : MonoBehaviour
             MeleeAttack.TryGetValue(key, out attack);
             prevkey = key;
 
-            if (attackTimer >= attack.GetStart() &&
-               attackTimer < attack.GetEndAnim())
+            if (attackTimer >= attack.startattack &&
+               attackTimer < attack.endanim)
             {
                 CheckCombo();
             }
 
-            if (attackTimer >= attack.GetStart() &&
-                attackTimer < attack.GetEnd())
+            if (attackTimer >= attack.startattack &&
+                attackTimer < attack.endattack)
             {
                 AttackStart?.Invoke();
 
             }
-            else if (attackTimer >= attack.GetEnd() &&
-                    attackTimer <= attack.GetEndAnim())
+            else if (attackTimer >= attack.endattack &&
+                    attackTimer <= attack.endanim)
             {
                 AttackEnd?.Invoke();
                 if (Combo)
@@ -90,7 +92,7 @@ public class PlayerAttack : MonoBehaviour
                     CallNextAttack = true;
                 }
             }
-            else if (attackTimer > attack.GetEndAnim())
+            else if (attackTimer > attack.startattack)
             {
                 playercontroller.anim.SetBool(key, false);
                 attackTimer = 0;
@@ -124,26 +126,62 @@ public class PlayerAttack : MonoBehaviour
         dashAttack = new Dictionary<string, AttackTime>();
         string name;
         name = "DashAttack1";
-        dashAttack.Add(name, new AttackTime(name, 0.2f, 0.7f, 1.15f));
+        dashAttack.Add(name, new AttackTime(name, 0.05f, 0.3f, 0.4f));
         name = "DashAttack2";
-        dashAttack.Add(name, new AttackTime(name, 0.2f, 0.7f, 1.15f));
+        dashAttack.Add(name, new AttackTime(name, 0.05f, 0.3f, 0.4f));
 
+    }
+
+    public void DashAttackOrder()
+    {
+        if (Input.GetButtonDown("Fire1") && !dashAttackOrder)
+        {
+            dashAttackOrder = true;
+        }
     }
 
     public void DashAttack()
     {
-        
+        if (!dashAttackOrder)
+            return;
+
+        attackTimer += Time.deltaTime;
+        playercontroller.anim.SetBool("DashAttack",true);
+        AttackTime dashattack;
+        string key = "DashAttack";
+        int keynumber = isRight ? 1 : 2;
+        key += keynumber.ToString();
+        dashAttack.TryGetValue(key,out dashattack);
+
+        if(dashattack.startattack <= attackTimer
+            && dashattack.endanim > attackTimer)
+        {
+            CheckCombo();
+        }
+
+        if(dashattack.startattack <= attackTimer &&
+            dashattack.endattack > attackTimer)
+        {
+            AttackStart?.Invoke();
+        }
+        else if(Combo)
+        {
+            attackTimer = 0;
+            playercontroller.anim.SetBool("SlashAgain",!isRight);
+            isRight = !isRight;
+            Combo = false;
+        }
+        else if(dashattack.endattack <= attackTimer &&
+            dashattack.endanim > attackTimer)
+        {
+            AttackEnd?.Invoke();
+        }
+        else if(dashattack.endanim <= attackTimer)
+        {
+            attackTimer = 0;
+            playercontroller.anim.SetBool("DashAttack", false);
+            dashAttackOrder = false;
+        }
     }
 
-    private void SetSlashDirection()
-    {
-        if(isRight)
-        {
-
-        }
-        else
-        {
-
-        }
-    }
 }

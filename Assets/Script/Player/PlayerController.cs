@@ -85,6 +85,8 @@ namespace Player
                     break;
                 case Playerstate.Move:
                     BladeModeSwitch();
+                    playerattack.DashAttackOrder();
+                    playerattack.DashAttack();
                     Move();
                     Jump();
                     break;
