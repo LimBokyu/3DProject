@@ -4,8 +4,14 @@ using UnityEngine;
 
 public class EnemySoundDetection : MonoBehaviour
 {
+    EnemyController ec;
+
+    private void Awake()
+    {
+        ec = GetComponent<EnemyController>();
+    }
     public void ReactSound()
     {
-        
+        ec.Alert();
     }
 }
