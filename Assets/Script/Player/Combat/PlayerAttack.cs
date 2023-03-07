@@ -168,9 +168,7 @@ public class PlayerAttack : MonoBehaviour
         attackTimer += Time.deltaTime;
         playercontroller.anim.SetBool("DashAttack",true);
         AttackTime dashattack;
-        string key = "DashAttack";
-        int keynumber = isRight ? 1 : 2;
-        key += keynumber.ToString();
+        string key = isRight ? "DashAttack1" : "DashAttack2";
         dashAttack.TryGetValue(key,out dashattack);
 
         if (dashattack.startattack <= attackTimer

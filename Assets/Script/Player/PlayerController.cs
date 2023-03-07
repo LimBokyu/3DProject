@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-enum Playerstate { Idle, Move, Attack, Dodge, BladeMode, Hurt, Dash }
+enum Playerstate { Idle, Move, Attack, Dodge, BladeMode, Hurt, NinjaRun }
 namespace Player
 {
     public class PlayerController : MonoBehaviour
@@ -15,6 +15,7 @@ namespace Player
         private bool OnDamaged = false;
         private bool OnBladeMode = false;
         private bool Moving = false;
+        private bool onNinjaRun = false;
         //======================================
         [Space]
 
@@ -29,6 +30,7 @@ namespace Player
         private BladeMode bladeMode;
         private PlayerAttack playerattack;
         private PlayerHealth health;
+        private NinjaRun ninjarun;
         //======================================
         [Space]
 
@@ -62,6 +64,7 @@ namespace Player
             bladeMode = GetComponent<BladeMode>();
             playerattack= GetComponent<PlayerAttack>();
             health = GetComponent<PlayerHealth>();
+            ninjarun = GetComponent<NinjaRun>();
         }
 
         public void Start()
@@ -86,8 +89,15 @@ namespace Player
                     break;
                 case Playerstate.Move:
                     BladeModeSwitch();
+                    NinjaRunOrder();
                     playerattack.DashAttackOrder();
                     playerattack.DashAttack();
+                    Move();
+                    Jump();
+                    break;
+                case Playerstate.NinjaRun:
+                    NinjaRunOrder();
+                    ninjarun.NinjaRunBehaviour();
                     Move();
                     Jump();
                     break;
@@ -118,6 +128,10 @@ namespace Player
             {
                 state = Playerstate.Attack;
             }
+            else if(onNinjaRun)
+            {
+                state = Playerstate.NinjaRun;
+            }
             else if(Moving)
             {
                 state = Playerstate.Move;
@@ -128,7 +142,14 @@ namespace Player
             }
         }
 
-
+        private void NinjaRunOrder()
+        {
+            if(Moving)
+            {
+                onNinjaRun = Input.GetKey(KeyCode.LeftShift) ? true : false;
+                moveSpeed = Input.GetKey(KeyCode.LeftShift) ? 15f : 10f;
+            }
+        }
 
         // 테스트용 함수 테스트 끝나면 제거할것
         public void DamageTest()

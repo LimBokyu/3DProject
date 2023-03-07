@@ -58,8 +58,6 @@ public class EnemyController : MonoBehaviour
     private bool onHit = false;
     //================================
 
-
-
     private void Start()
     {
         m_HP = 100;
