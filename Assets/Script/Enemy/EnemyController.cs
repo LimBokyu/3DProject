@@ -32,6 +32,8 @@ public class EnemyController : MonoBehaviour
     public ParticleSystem gunFlash;
     public AudioSource gunShot;
 
+    private Executions executions;
+
     [SerializeField]
     private Transform Target;
 
@@ -58,13 +60,18 @@ public class EnemyController : MonoBehaviour
     private bool onHit = false;
     //================================
 
+    private void Awake()
+    {
+        executions = GetComponent<Executions>();
+        nav = GetComponent<NavMeshAgent>();
+        anim = GetComponent<Animator>();
+        view = GetComponent<EnemyView>();
+    }
+
     private void Start()
     {
         m_HP = 100;
         state = EnemyState.Idle;
-        nav = GetComponent<NavMeshAgent>();
-        anim = GetComponent<Animator>();
-        view = GetComponent<EnemyView>();
         Target = null;
         shotBullet = null;
         MoveBackCoroutine = null;
@@ -90,6 +97,7 @@ public class EnemyController : MonoBehaviour
                 break;
 
             case EnemyState.Idle:
+                executions.GetAssassinationRange();
                 break;
 
             case EnemyState.Alert:
@@ -101,6 +109,7 @@ public class EnemyController : MonoBehaviour
                 break;
 
             case EnemyState.Patrol:
+                executions.GetAssassinationRange();
                 break;
 
             case EnemyState.Search:
@@ -108,6 +117,7 @@ public class EnemyController : MonoBehaviour
                 break;
 
             case EnemyState.MoveBack:
+                executions.GetAssassinationRange();
                 MoveBack();
                 break;
         }
@@ -158,7 +168,7 @@ public class EnemyController : MonoBehaviour
 
         if (MoveBackCoroutine == null)
         {
-            Debug.Log("Call MoveBack Coroutine");
+            //Debug.Log("Call MoveBack Coroutine");
             MoveBackCoroutine = StartCoroutine(BackToFirstPosition());
         }
 
@@ -323,8 +333,8 @@ public class EnemyController : MonoBehaviour
         onDamaged = true;
         onHit = true;
         m_HP -= damage;
-        string TestText = damage.ToString() + " 데미지를 입어 체력이 " + m_HP.ToString() + " 남았습니다";
-        Debug.Log(TestText);
+        //string TestText = damage.ToString() + " 데미지를 입어 체력이 " + m_HP.ToString() + " 남았습니다";
+        //Debug.Log(TestText);
     }
 
     private void Attack()
@@ -354,12 +364,12 @@ public class EnemyController : MonoBehaviour
         {
             if (other.transform.gameObject.layer.Equals(9))
             {
-                Debug.Log("Damaged by Katana");
+                //Debug.Log("Damaged by Katana");
                 TakeDamage(50);
             }
             else if (other.transform.gameObject.layer.Equals(10))
             {
-                Debug.Log("Damaged by CutBlade");
+                //Debug.Log("Damaged by CutBlade");
                 TakeDamage(10);
             }
         }

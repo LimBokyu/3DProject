@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-enum Playerstate { Idle, Move, Attack, Dodge, BladeMode, Hurt, NinjaRun }
+enum Playerstate { Idle, Move, Attack, Dodge, BladeMode, Hurt, NinjaRun, Executions }
 namespace Player
 {
     public class PlayerController : MonoBehaviour
@@ -31,6 +31,7 @@ namespace Player
         private PlayerAttack playerattack;
         private PlayerHealth health;
         private NinjaRun ninjarun;
+        private Assassination assasination;
         //======================================
         [Space]
 
@@ -65,6 +66,7 @@ namespace Player
             playerattack= GetComponent<PlayerAttack>();
             health = GetComponent<PlayerHealth>();
             ninjarun = GetComponent<NinjaRun>();
+            assasination = GetComponent<Assassination>();
         }
 
         public void Start()
@@ -84,6 +86,7 @@ namespace Player
                     BladeModeSwitch();
                     playerattack.AttackOrder();
                     playerattack.DashAttackEnd();
+                    assasination.CheckAssasination();
                     Move();
                     Jump();
                     break;
@@ -97,6 +100,7 @@ namespace Player
                     break;
                 case Playerstate.NinjaRun:
                     NinjaRunOrder();
+                    playerattack.DashAttackEnd();
                     ninjarun.NinjaRunBehaviour();
                     Move();
                     Jump();

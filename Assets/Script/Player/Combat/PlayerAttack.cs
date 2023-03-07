@@ -20,9 +20,12 @@ public class PlayerAttack : MonoBehaviour
     private bool isRight = true;
     [SerializeField] private bool dashAttackOrder = false;
 
+    private Assassination assassination;
+
     private void Awake()
     {
         playercontroller = GetComponent<PlayerController>();
+        assassination = GetComponent<Assassination>();
     }
 
     private void Start()
@@ -33,6 +36,9 @@ public class PlayerAttack : MonoBehaviour
 
     public void AttackOrder()
     {
+        if (assassination.GetActivate())
+            return;
+
         if (Input.GetButtonDown("Fire1"))
         {
             key = "melee";
@@ -45,7 +51,6 @@ public class PlayerAttack : MonoBehaviour
     {
         if (AttackCount == 0)
             return;
-
 
         if (CallNextAttack)
         {
@@ -201,5 +206,4 @@ public class PlayerAttack : MonoBehaviour
             dashAttackOrder = false;
         }
     }
-
 }
