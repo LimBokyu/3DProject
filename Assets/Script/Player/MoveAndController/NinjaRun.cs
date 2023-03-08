@@ -9,8 +9,10 @@ public class NinjaRun : MonoBehaviour
     [SerializeField] private LayerMask bulletLayer;
     PlayerCamera playerCam;
 
+    [SerializeField] private Transform playerMiddle;
+
     [SerializeField]
-    private float range = 3f;
+    private float range = 1.5f;
     private void Start()
     {
         controller = GetComponent<PlayerController>();
@@ -18,7 +20,7 @@ public class NinjaRun : MonoBehaviour
     }
     private void ReflectBullet()
     {
-        Collider[] colliders = Physics.OverlapSphere(controller.transform.position, range, bulletLayer);
+        Collider[] colliders = Physics.OverlapSphere(playerMiddle.position, range, bulletLayer);
 
         if (colliders.Length <= 0)
             return;

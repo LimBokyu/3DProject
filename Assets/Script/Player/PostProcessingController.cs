@@ -99,7 +99,6 @@ public class PostProcessingController : MonoBehaviour
     private void CameraVigSet(float vigval)
     {
         Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<Vignette>().intensity.value = vigval;
-        //Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<Vignette>().color.value = Color.red;
     }
 
     private void CameraChromSet(float chromval)

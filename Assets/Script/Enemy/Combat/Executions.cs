@@ -59,6 +59,11 @@ public class Executions : MonoBehaviour
         }
     }
 
+    public void Execution()
+    {
+        controller.Dead();
+    }
+
     private void CheckOutRanged()
     {
         if (inRange)

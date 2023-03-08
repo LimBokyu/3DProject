@@ -9,6 +9,7 @@ public class PlayerCamera : MonoBehaviour
     private Camera cam;
     [SerializeField] private CinemachineComposer[] composers;
     [SerializeField] private CinemachineFreeLook freeLook;
+    [SerializeField] private CinemachineVirtualCamera virtualcam;
     private float normalFov = 30;
     private float zoomFov = 15;
     public Vector3 zoomOffset;
@@ -75,6 +76,16 @@ public class PlayerCamera : MonoBehaviour
                 SetFieldOfView(start);
             }
         }
+    }
+
+    public void OnVirtualCam()
+    {
+        virtualcam.Priority = 15;
+    }
+
+    public void OffVirtualCam()
+    {
+        virtualcam.Priority = 1;
     }
     public void BladeModeCameraSetting(bool OnBladeMode)
     {
