@@ -9,16 +9,17 @@ public class Assassination : MonoBehaviour
 {
     [SerializeField] private TimeManager timeManager;
 
+    // ====== Component ======
     private PlayerController pc;
     private PlayerCamera playercam;
     private PostProcessingController ppcontroller;
     private ScreenFlash flash;
+    // ========================
+
+    // ===== Target Enemy =====
     private Transform target = null;
-
-    [SerializeField] private Executions[] nearenemies;
     [SerializeField] private Executions nearEnemy;
-
-    private Vector3 assassinationoffset = new Vector3(0f, 0f, -0.2f);
+    // ========================
 
     [SerializeField] LayerMask enemyMask;
     [SerializeField] LayerMask obstacleMask;
@@ -26,9 +27,11 @@ public class Assassination : MonoBehaviour
     private bool activate = false;
     private bool assassinationOrder = false;
     private bool lockon = false;
+    private bool duringassassination = false;
 
-    private float radius = 0.3f;
+    private float range = 1.5f;
     private float angleRange = 30f;
+    private float inputTimer = 0;
 
     private void Awake()
     {
@@ -39,6 +42,21 @@ public class Assassination : MonoBehaviour
     private void Start()
     {
         flash = pc.flash;
+    }
+
+    private void Update()
+    {
+        if (!duringassassination)
+            return;
+
+        inputTimer += Time.unscaledDeltaTime;
+        if (inputTimer > 2f)
+        {
+            ppcontroller.BladeModeSetPostProcessing(false);
+            timeManager.SlowMotion(false);
+            playercam.OffVirtualCam();
+            duringassassination = false;
+        }
     }
 
     public void SetActivate(bool value)
@@ -73,79 +91,82 @@ public class Assassination : MonoBehaviour
 
     public void LockOnTarget()
     {
-        Collider[] colliders = Physics.OverlapSphere(transform.position, radius, enemyMask);
+        Collider[] colliders = Physics.OverlapSphere(transform.position, range, enemyMask);
 
-        int count = 0;
+        int nullcount = 0;
 
         for (int index = 0; index < colliders.Length; index++)
         {
             Vector3 dirToTarget = (colliders[index].transform.position - transform.position).normalized;
-            Vector3 rightDir = AngelToDir(transform.eulerAngles.y + angleRange * 0.5f);
+            Vector3 rightDir = AngleToDir(transform.eulerAngles.y + angleRange * 0.5f);
+            Vector3 leftDir = AngleToDir(transform.eulerAngles.y + -angleRange * 0.5f);
 
             if (Vector3.Dot(transform.forward, dirToTarget) < Vector3.Dot(transform.forward, rightDir))
+            {
+                lockon = false;
                 continue;
-
+            }
+                
             float distToTarget = Vector3.Distance(transform.position, colliders[index].transform.position);
 
             if (Physics.Raycast(transform.position, dirToTarget, distToTarget, obstacleMask))
-                continue;
-
-            Debug.DrawRay(transform.position, dirToTarget * distToTarget, Color.yellow);
-
-            if (colliders[index].gameObject.GetComponent<Executions>() != null)
             {
-                nearenemies[count] = colliders[index].gameObject.GetComponent<Executions>();
-                count++;
+                lockon = false;
+                continue;
             }
+                
+
+            Debug.DrawRay(transform.position, dirToTarget * distToTarget, Color.red);
+            Debug.DrawRay(transform.position, rightDir * range, Color.magenta);
+            Debug.DrawRay(transform.position, leftDir * range, Color.magenta);
+
+            if (colliders[index].transform.gameObject.GetComponent<Executions>() != null)
+            {
+                nearEnemy = colliders[index].transform.gameObject.GetComponent<Executions>();
+                lockon = true;
+                break;
+            }
+            else
+            {
+                nullcount++;
+            }
+        }
+
+        if(nullcount == colliders.Length)
+        {
+            nearEnemy = null;
+            lockon = false;
         }
     } 
 
     private void MoveAssassinationPosition()
     {
-        if (nearenemies.Length == 0)
-        {
-            lockon = false;
-            return;
-        }
-        else if (nearenemies.Length == 1)
-        {
-            SetAssassinationPositionTarget(nearenemies[0].GetAssassinationZone().position);
-        }
-        else
-        {
-            nearEnemy = nearenemies[0].gameObject.GetComponent<Executions>();
-
-            for (int index = 0; index < nearenemies.Length; index++)
-            {
-                nearEnemy = (nearenemies[index].transform.position - transform.position).sqrMagnitude <
-                            (nearenemies[index + 1].transform.position - transform.position).sqrMagnitude ?
-                             nearenemies[index + 1].gameObject.GetComponent<Executions>() :
-                             nearenemies[index].gameObject.GetComponent<Executions>();
-            }
-
-            SetAssassinationPositionTarget(nearEnemy.GetAssassinationZone().position);
-        }
-
-    }
-
-    private void SetAssassinationPositionTarget(Vector3 pos)
-    {
-        transform.position = pos;
+        transform.position = nearEnemy.GetAssassinationZone().position;
     }
 
     private void DoAssassination()
     {
-        if(assassinationOrder)
+        if(assassinationOrder && lockon)
         {
             pc.anim.SetBool("Executions",true);
-            //pc.anim.updateMode = AnimatorUpdateMode.Normal;
             MoveAssassinationPosition();
             SetDirection();
             flash.BladeFlash();
             playercam.OnVirtualCam();
             ppcontroller.BladeModeSetPostProcessing(true);
             timeManager.SlowMotion(true);
+            duringassassination = true;
         }
+    }
+
+    private void EndAssassination()
+    {
+
+    }
+
+    private void BloodLust()
+    {
+        
     }
 
     private void SetAssassinationUI()
@@ -163,7 +184,7 @@ public class Assassination : MonoBehaviour
     {
         target = transform;
     }
-    private Vector3 AngelToDir(float angle)
+    private Vector3 AngleToDir(float angle)
     {
         float radian = angle * Mathf.Deg2Rad;
         return new Vector3(Mathf.Sin(radian), 0, Mathf.Cos(radian));

@@ -124,6 +124,11 @@ public class PlayerCamera : MonoBehaviour
         }
     }
 
+    public void CameraShakeNormalTimeScale()
+    {
+        cam.GetComponent<CinemachineImpulseSource>().GenerateImpulse();
+    }
+
     public void CameraShake()
     {
         freeLook.GetComponent<CinemachineImpulseSource>().GenerateImpulse();

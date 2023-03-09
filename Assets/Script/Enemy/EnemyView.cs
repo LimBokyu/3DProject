@@ -69,7 +69,7 @@ public class EnemyView : MonoBehaviour
         for(int i=0; i< colliders.Length; i++)
         {
             Vector3 dirToTarget = (colliders[i].transform.position - transform.position).normalized;
-            Vector3 rightDir = AngelToDir(transform.eulerAngles.y + viewAngle * 0.5f);
+            Vector3 rightDir = AngleToDir(transform.eulerAngles.y + viewAngle * 0.5f);
 
             if (Vector3.Dot(transform.forward, dirToTarget) < Vector3.Dot(transform.forward, rightDir))
                 continue;
@@ -96,7 +96,7 @@ public class EnemyView : MonoBehaviour
         for (int i = 0; i < colliders.Length; i++)
         {
             Vector3 dirToTarget = (colliders[i].transform.position - transform.position).normalized;
-            Vector3 rightDir = AngelToDir(transform.eulerAngles.y + viewAngle * 0.5f);
+            Vector3 rightDir = AngleToDir(transform.eulerAngles.y + viewAngle * 0.5f);
 
             if (Vector3.Dot(transform.forward, dirToTarget) < Vector3.Dot(transform.forward, rightDir))
                 continue;
@@ -118,7 +118,7 @@ public class EnemyView : MonoBehaviour
     {
         return InShootingRange;
     }
-    private Vector3 AngelToDir(float angle)
+    private Vector3 AngleToDir(float angle)
     {
         float radian = angle * Mathf.Deg2Rad;
         return new Vector3(Mathf.Sin(radian), 0, Mathf.Cos(radian));
