@@ -31,7 +31,7 @@ namespace Player
         private PlayerAttack playerattack;
         private PlayerHealth health;
         private NinjaRun ninjarun;
-        private Assassination assasination;
+        private Assassination assassination;
         //======================================
         [Space]
 
@@ -66,7 +66,7 @@ namespace Player
             playerattack= GetComponent<PlayerAttack>();
             health = GetComponent<PlayerHealth>();
             ninjarun = GetComponent<NinjaRun>();
-            assasination = GetComponent<Assassination>();
+            assassination = GetComponent<Assassination>();
         }
 
         public void Start()
@@ -86,7 +86,8 @@ namespace Player
                     BladeModeSwitch();
                     playerattack.AttackOrder();
                     playerattack.DashAttackEnd();
-                    assasination.CheckAssasination();
+                    assassination.CheckAssasination();
+                    assassination.LockOnTarget();
                     Move();
                     Jump();
                     break;

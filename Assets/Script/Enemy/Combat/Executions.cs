@@ -2,6 +2,7 @@ using Player;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 public class Executions : MonoBehaviour
@@ -10,6 +11,10 @@ public class Executions : MonoBehaviour
 
     private float range = 1.5f;
     private float outrange = 3f;
+
+    [SerializeField] private Transform offsetTransform;
+    [SerializeField] private Transform assassinationZone;
+
     [SerializeField] private LayerMask playerMask;
     [SerializeField] private LayerMask obstacleMask;
 
@@ -19,6 +24,11 @@ public class Executions : MonoBehaviour
     private void Start()
     {
         controller = GetComponent<EnemyController>();
+    }
+
+    public Transform GetAssassinationZone()
+    {
+        return assassinationZone;
     }
 
     public void GetAssassinationRange()
@@ -45,6 +55,7 @@ public class Executions : MonoBehaviour
             {
                 Debug.Log("플레이어가 범위 내로 들어옴");
                 inRange = true;
+                assasination.SetTarget(offsetTransform);
                 assasination.SetActivate(inRange);
             }
             else
@@ -61,7 +72,7 @@ public class Executions : MonoBehaviour
 
     public void Execution()
     {
-        controller.Dead();
+        controller.GetComponent<Animator>().enabled = false;
     }
 
     private void CheckOutRanged()

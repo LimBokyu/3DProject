@@ -18,7 +18,7 @@ public class EnemyController : MonoBehaviour
     private Vector3 FirstPosition;
     private Vector3 firstlookat;
     private NavMeshAgent nav;
-    private Animator anim;
+    public Animator anim;
 
     private Coroutine shotBullet;
     private Coroutine MoveBackCoroutine;

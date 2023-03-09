@@ -9,14 +9,16 @@ public class NinjaRun : MonoBehaviour
     [SerializeField] private LayerMask bulletLayer;
     PlayerCamera playerCam;
 
-    [SerializeField] private Transform playerMiddle;
+    public Transform playerMiddle;
 
     [SerializeField]
     private float range = 1.5f;
-    private void Start()
+
+    private void Awake()
     {
         controller = GetComponent<PlayerController>();
-        playerCam = GetComponent<PlayerCamera>();   
+        playerCam = GetComponent<PlayerCamera>();
+
     }
     private void ReflectBullet()
     {
