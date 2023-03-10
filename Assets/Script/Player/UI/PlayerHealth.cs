@@ -86,7 +86,7 @@ public class PlayerHealth : MonoBehaviour
         regainTimer = 0;
         if (currentHealth <= 0)
         {
-            
+            playercontroller.PlayerDead();
         }
     }
 

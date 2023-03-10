@@ -72,7 +72,8 @@ public class Executions : MonoBehaviour
 
     public void Execution()
     {
-        controller.GetComponent<Animator>().enabled = false;
+        controller.Dead();
+        Destroy(this);
     }
 
     private void CheckOutRanged()

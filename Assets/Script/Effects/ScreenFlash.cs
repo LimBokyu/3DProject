@@ -35,6 +35,13 @@ public class ScreenFlash : MonoBehaviour
         OrderFlash();
     }
 
+    public void Dead()
+    {
+        BladeMode = false;
+        SetColor();
+        DeadUIFadeIn();
+    }
+
     public void BladeFlash()
     {
         BladeMode = true;
@@ -47,6 +54,23 @@ public class ScreenFlash : MonoBehaviour
         StartFlash(flashTime, Alpha, ChangeColor);
     }
 
+    private void DeadUIFadeIn()
+    {
+        OrderFadeInUI(flashTime, Alpha, ChangeColor);
+    }
+
+    private void OrderFadeInUI(float flash, float alpha, Color color)
+    {
+        image.color = color;
+
+        alpha = Mathf.Clamp(alpha, 0, 1);
+
+        if (flashcoroutine != null)
+            return;
+
+        flashcoroutine = StartCoroutine(FadeInUI(flash, alpha));
+    }
+
     private void StartFlash(float flash, float alpha, Color color)
     {
         image.color = color;
@@ -57,6 +81,28 @@ public class ScreenFlash : MonoBehaviour
             StopCoroutine(flashcoroutine);
 
         flashcoroutine = StartCoroutine(Flash(flash, alpha));
+    }
+
+    private IEnumerator FadeInUI(float flash, float alpha)
+    {
+        float duration = flash / 2f;
+        float time = 0;
+
+        while(true)
+        {
+            time += Time.unscaledDeltaTime;
+            Color curColor = image.color;
+            Mathf.Lerp(0, alpha, time / flash);
+            image.color = curColor;
+
+            if (duration <= time)
+            {
+                break;
+            }
+            
+            yield return null;
+        }
+
     }
 
     private IEnumerator Flash(float flash, float alpha)

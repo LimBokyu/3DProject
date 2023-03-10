@@ -15,16 +15,22 @@ public class PostProcessingController : MonoBehaviour
     private Color blademodecolor;
     private Color overdrivecolor;
 
+    private Vignette vig;
+    private ChromaticAberration chrom;
+
     private float overdriveintencity = 0.4f;
     private float overdrivesmoothness = 0.8f;
 
-    //private void Start()
-    //{
-    //    blademodecolor = new Color(72f,168f,214f,255f);
-    //    overdrivecolor = new Color(214f, 72f, 88f, 255f);
+    private void Awake()
+    {
+        vig = Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<Vignette>();
+        chrom = Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<ChromaticAberration>();
 
-    //    //Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<Vignette>().color.value = blademodecolor;
-    //}
+        //blademodecolor = new Color(72f, 168f, 214f, 255f);
+        blademodecolor = vig.color;
+        overdrivecolor = new Color(214f, 72f, 88f, 255f);
+    }
+
     private IEnumerator SetChrom(float beginchrom, float endchrom, bool OnBladeMode)
     {
         float chromval = 0.2f;
@@ -95,15 +101,20 @@ public class PostProcessingController : MonoBehaviour
         StartCoroutine(SetVig(startvig, endvig, OnBladeMode));
     }
 
+    public void OverDrivePostProcessing()
+    {
+        vig.color.Override(Color.gray);
+        BladeModeSetPostProcessing(true);
+    }
 
     private void CameraVigSet(float vigval)
     {
-        Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<Vignette>().intensity.value = vigval;
+        vig.intensity.value = vigval;
     }
 
     private void CameraChromSet(float chromval)
     {
-        Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<ChromaticAberration>().intensity.value = chromval;
+        chrom.intensity.value = chromval;
     }
 
 }

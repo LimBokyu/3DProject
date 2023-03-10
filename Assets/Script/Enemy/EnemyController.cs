@@ -324,8 +324,10 @@ public class EnemyController : MonoBehaviour
 
     public void Dead()
     {
+        isDead = true;
         Debug.Log("EnemyDie");
-        Destroy(gameObject);
+        anim.SetBool("Executed", true);
+        Destroy(gameObject, 10f);
     }
     
     public void TakeDamage(int damage)

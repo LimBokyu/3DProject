@@ -54,9 +54,11 @@ public class Assassination : MonoBehaviour
         inputTimer += Time.unscaledDeltaTime;
         if (inputTimer > 2f)
         {
+            pc.invincible = false;
             ppcontroller.BladeModeSetPostProcessing(false);
             timeManager.SlowMotion(false);
             playercam.OffVirtualCam();
+            pc.anim.SetBool("Executions", false);
             duringassassination = false;
         }
     }
@@ -90,6 +92,7 @@ public class Assassination : MonoBehaviour
         if (activate && lockon && Input.GetButtonDown("Fire1"))
         {
             ui.EndAnimation();
+            pc.invincible = true;
             Debug.Log("¾Ï»ì");
             assassinationOrder = true;
             DoAssassination();
@@ -164,14 +167,15 @@ public class Assassination : MonoBehaviour
         if(assassinationOrder && lockon)
         {
             pc.anim.SetBool("Executions",true);
-            
             MoveAssassinationPosition();
             SetDirection();
             flash.BladeFlash();
             playercam.OnVirtualCam();
-            ppcontroller.BladeModeSetPostProcessing(true);
+            ppcontroller.OverDrivePostProcessing();
             timeManager.SlowMotion(true);
             duringassassination = true;
+            nearEnemy.Execution();
+            nearEnemy = null;
         }
     }
 

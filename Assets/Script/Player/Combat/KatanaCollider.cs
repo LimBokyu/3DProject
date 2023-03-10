@@ -14,6 +14,9 @@ public class KatanaCollider : MonoBehaviour
     [SerializeField]
     private ParticleSystem particle;
 
+    public bool blademode;
+    private float damage { get; set; }
+
     [SerializeField]
     private Transform effect;
     private void Start()

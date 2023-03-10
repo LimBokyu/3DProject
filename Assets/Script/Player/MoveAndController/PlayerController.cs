@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Playables;
 
-enum Playerstate { Idle, Move, Attack, Dodge, BladeMode, Hurt, NinjaRun, Executions }
+enum Playerstate { Idle, Move, Attack, Dodge, BladeMode, Hurt, NinjaRun, Executions, Dead}
 namespace Player
 {
     public class PlayerController : MonoBehaviour
@@ -16,6 +17,8 @@ namespace Player
         private bool OnBladeMode = false;
         private bool Moving = false;
         private bool onNinjaRun = false;
+        private bool dead = false;
+        public bool invincible = false;
         //======================================
         [Space]
 
@@ -126,7 +129,11 @@ namespace Player
 
         public void StateUpdate()
         {
-            if(OnBladeMode)
+            if (dead)
+            {
+                state = Playerstate.Dead;
+            }
+            else if(OnBladeMode)
             {
                 state = Playerstate.BladeMode;
             }
@@ -225,6 +232,8 @@ namespace Player
         public void PlayerDead()
         {
             // »ç¸Á ¹Ì±¸Çö
+            dead = true;
+            flash.Dead();
         }
 
         public void Jump()
@@ -252,6 +261,9 @@ namespace Player
 
         private void OnTriggerEnter(Collider other)
         {
+            if (invincible)
+                return;
+
             if(other.tag.Equals("Bullet"))
             {
                 health.TakeDamage(100);
