@@ -21,6 +21,8 @@ public class Assassination : MonoBehaviour
     [SerializeField] private Executions nearEnemy;
     // ========================
 
+    [SerializeField] private AssassinationUI ui;
+
     [SerializeField] LayerMask enemyMask;
     [SerializeField] LayerMask obstacleMask;
 
@@ -71,26 +73,40 @@ public class Assassination : MonoBehaviour
 
     public void CheckAssasination()
     {
-        if (activate)
+        if (activate && lockon)
         {
             SetAssassinationUI();
             AssassinationOrder();
+        }
+        else if(!lockon)
+        {
+            NullTarget();
         }
 
     }
 
     public void AssassinationOrder()
     {
-        if (activate && Input.GetButtonDown("Fire1"))
+        if (activate && lockon && Input.GetButtonDown("Fire1"))
         {
+            ui.EndAnimation();
             Debug.Log("¾Ï»ì");
             assassinationOrder = true;
             DoAssassination();
         }
     }
 
+    private void NullTarget()
+    {
+        nearEnemy = null;
+        ui.EndAnimation();
+    }
+
     public void LockOnTarget()
     {
+        if (assassinationOrder)
+            return;
+
         Collider[] colliders = Physics.OverlapSphere(transform.position, range, enemyMask);
 
         int nullcount = 0;
@@ -114,7 +130,6 @@ public class Assassination : MonoBehaviour
                 lockon = false;
                 continue;
             }
-                
 
             Debug.DrawRay(transform.position, dirToTarget * distToTarget, Color.red);
             Debug.DrawRay(transform.position, rightDir * range, Color.magenta);
@@ -123,6 +138,7 @@ public class Assassination : MonoBehaviour
             if (colliders[index].transform.gameObject.GetComponent<Executions>() != null)
             {
                 nearEnemy = colliders[index].transform.gameObject.GetComponent<Executions>();
+                ui.startAnimation();
                 lockon = true;
                 break;
             }
@@ -134,10 +150,9 @@ public class Assassination : MonoBehaviour
 
         if(nullcount == colliders.Length)
         {
-            nearEnemy = null;
             lockon = false;
         }
-    } 
+    }
 
     private void MoveAssassinationPosition()
     {
@@ -149,6 +164,7 @@ public class Assassination : MonoBehaviour
         if(assassinationOrder && lockon)
         {
             pc.anim.SetBool("Executions",true);
+            
             MoveAssassinationPosition();
             SetDirection();
             flash.BladeFlash();

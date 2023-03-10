@@ -96,6 +96,7 @@ namespace Player
                     NinjaRunOrder();
                     playerattack.DashAttackOrder();
                     playerattack.DashAttack();
+                    assassination.LockOnTarget();
                     Move();
                     Jump();
                     break;
