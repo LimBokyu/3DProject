@@ -46,11 +46,18 @@ public class Assassination : MonoBehaviour
         flash = pc.flash;
     }
 
-    private void Update()
+    public void SetActivate(bool value)
     {
-        if (!duringassassination)
-            return;
+        activate = value;
+    }
 
+    public bool GetActivate()
+    {
+        return activate;
+    }
+
+    public void AssassinationBehaviour()
+    {
         inputTimer += Time.unscaledDeltaTime;
         if (inputTimer > 2f)
         {
@@ -60,17 +67,9 @@ public class Assassination : MonoBehaviour
             playercam.OffVirtualCam();
             pc.anim.SetBool("Executions", false);
             duringassassination = false;
+            pc.executions = false;
+            SetPlayerRotation();
         }
-    }
-
-    public void SetActivate(bool value)
-    {
-        activate = value;
-    }
-
-    public bool GetActivate()
-    {
-        return activate;
     }
 
     public void CheckAssasination()
@@ -85,6 +84,11 @@ public class Assassination : MonoBehaviour
             NullTarget();
         }
 
+    }
+
+    private void SetPlayerRotation()
+    {
+        pc.transform.rotation = new Quaternion(0f, pc.transform.rotation.y, 0f , 0f);
     }
 
     public void AssassinationOrder()
@@ -175,6 +179,7 @@ public class Assassination : MonoBehaviour
             timeManager.SlowMotion(true);
             duringassassination = true;
             nearEnemy.Execution();
+            pc.executions = true;
             nearEnemy = null;
         }
     }

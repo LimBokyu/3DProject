@@ -19,6 +19,7 @@ namespace Player
         private bool onNinjaRun = false;
         private bool dead = false;
         public bool invincible = false;
+        public bool executions = false;
         //======================================
         [Space]
 
@@ -35,6 +36,8 @@ namespace Player
         private PlayerHealth health;
         private NinjaRun ninjarun;
         private Assassination assassination;
+        private PostProcessingController postprocessingcontroller;
+        private UIOff uioff;
         //======================================
         [Space]
 
@@ -70,6 +73,8 @@ namespace Player
             health = GetComponent<PlayerHealth>();
             ninjarun = GetComponent<NinjaRun>();
             assassination = GetComponent<Assassination>();
+            postprocessingcontroller = GetComponent<PostProcessingController>();
+            uioff = GetComponentInChildren<UIOff>();
         }
 
         public void Start()
@@ -85,6 +90,9 @@ namespace Player
         {
             switch (state)
             {
+                case Playerstate.Dead:
+
+                    break;
                 case Playerstate.Idle:
                     BladeModeSwitch();
                     playerattack.AttackOrder();
@@ -109,6 +117,9 @@ namespace Player
                     ninjarun.NinjaRunBehaviour();
                     Move();
                     Jump();
+                    break;
+                case Playerstate.Executions:
+                    assassination.AssassinationBehaviour();
                     break;
                 case Playerstate.BladeMode:
                     BladeModeSwitch();
@@ -140,6 +151,10 @@ namespace Player
             else if(playerattack.AttackCount > 0)
             {
                 state = Playerstate.Attack;
+            }
+            else if(executions)
+            {
+                state = Playerstate.Executions;
             }
             else if(onNinjaRun)
             {
@@ -231,8 +246,17 @@ namespace Player
 
         public void PlayerDead()
         {
-            // »ç¸Á ¹Ì±¸Çö
             dead = true;
+            invincible = true;
+            uioff.SetOffUI();
+            DeadEffect();
+        }
+
+        private void DeadEffect()
+        {
+            postprocessingcontroller.OnOffColorGrading(true);
+            postprocessingcontroller.OverDrivePostProcessing();
+
             flash.Dead();
         }
 

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
+using static Cinemachine.CinemachineOrbitalTransposer;
 
 public class PostProcessingController : MonoBehaviour
 {
@@ -17,6 +18,7 @@ public class PostProcessingController : MonoBehaviour
 
     private Vignette vig;
     private ChromaticAberration chrom;
+    private ColorGrading grading;
 
     private float overdriveintencity = 0.4f;
     private float overdrivesmoothness = 0.8f;
@@ -25,6 +27,7 @@ public class PostProcessingController : MonoBehaviour
     {
         vig = Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<Vignette>();
         chrom = Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<ChromaticAberration>();
+        grading = Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<ColorGrading>();
 
         //blademodecolor = new Color(72f, 168f, 214f, 255f);
         blademodecolor = vig.color;
@@ -97,13 +100,14 @@ public class PostProcessingController : MonoBehaviour
         float startchrom = OnBladeMode ? NormalChrom : ZoomChrom;
         float endchrom = OnBladeMode ? ZoomChrom : NormalChrom;
 
+        vig.color.Override(blademodecolor);
         StartCoroutine(SetChrom(startchrom, endchrom, OnBladeMode));
         StartCoroutine(SetVig(startvig, endvig, OnBladeMode));
     }
 
     public void OverDrivePostProcessing()
     {
-        vig.color.Override(Color.gray);
+        vig.color.Override(Color.red);
         BladeModeSetPostProcessing(true);
     }
 
@@ -117,4 +121,10 @@ public class PostProcessingController : MonoBehaviour
         chrom.intensity.value = chromval;
     }
 
+    public void OnOffColorGrading(bool value)
+    {
+        //Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<ColorGrading>().active = value;
+        //grading.active = value;
+        grading.enabled.Override(value);
+    }
 }

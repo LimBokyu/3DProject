@@ -66,7 +66,10 @@ public class ScreenFlash : MonoBehaviour
         alpha = Mathf.Clamp(alpha, 0, 1);
 
         if (flashcoroutine != null)
-            return;
+        {
+            StopCoroutine(flashcoroutine);
+        }
+            
 
         flashcoroutine = StartCoroutine(FadeInUI(flash, alpha));
     }
