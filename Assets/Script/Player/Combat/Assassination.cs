@@ -61,14 +61,7 @@ public class Assassination : MonoBehaviour
         inputTimer += Time.unscaledDeltaTime;
         if (inputTimer > 2f)
         {
-            pc.invincible = false;
-            ppcontroller.BladeModeSetPostProcessing(false);
-            timeManager.SlowMotion(false);
-            playercam.OffVirtualCam();
-            pc.anim.SetBool("Executions", false);
-            duringassassination = false;
-            pc.executions = false;
-            SetPlayerRotation();
+            EndAssassination();
         }
     }
 
@@ -88,7 +81,7 @@ public class Assassination : MonoBehaviour
 
     private void SetPlayerRotation()
     {
-        pc.transform.rotation = new Quaternion(0f, pc.transform.rotation.y, 0f , 0f);
+        transform.rotation = Quaternion.Euler(0, transform.rotation.y, 0).normalized;
     }
 
     public void AssassinationOrder()
@@ -186,7 +179,14 @@ public class Assassination : MonoBehaviour
 
     private void EndAssassination()
     {
-
+        pc.invincible = false;
+        ppcontroller.BladeModeSetPostProcessing(false);
+        timeManager.SlowMotion(false);
+        playercam.OffVirtualCam();
+        pc.anim.SetBool("Executions", false);
+        duringassassination = false;
+        pc.executions = false;
+        SetPlayerRotation();
     }
 
     private void BloodLust()
