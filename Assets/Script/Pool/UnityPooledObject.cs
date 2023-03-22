@@ -1,14 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 
 namespace ObjectPool
 {
-    public class PooledObject : MonoBehaviour
+    public class UnityPooledObject : MonoBehaviour
     {
         [SerializeField] private float returnTime;
 
-        public ObjectPooler returnPool { get; set; }
+        public IObjectPool<UnityPooledObject> returnPool;
 
         private void OnEnable()
         {
@@ -18,7 +19,7 @@ namespace ObjectPool
         private IEnumerator DelayToReturn()
         {
             yield return new WaitForSeconds(returnTime);
-            returnPool.ReturnToPool(this);
+            returnPool.Release(this);
         }
     }
 }

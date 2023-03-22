@@ -27,12 +27,13 @@ namespace ObjectPool
             {
                 PooledObject instance = Instantiate(prefab);
                 instance.gameObject.SetActive(false);
-                instance.returnPool = this;
+                //instance.returnpool = this;
+                instance.transform.parent = transform;
                 pool.Push(instance);
             }
         }
 
-        public PooledObject Get(Vector3 position, Quaternion rotation)
+        public PooledObject Get(Vector3 position, Quaternion rotation, Transform parent = null)
         {
             if (pool.Count > 0)
             {
@@ -40,6 +41,7 @@ namespace ObjectPool
                 instance.gameObject.SetActive(true);
                 instance.transform.position = position;
                 instance.transform.rotation = rotation;
+                instance.transform.parent = parent;
                 return instance;
             }
             else if(enableCreation)
@@ -48,7 +50,8 @@ namespace ObjectPool
                 instance.gameObject.SetActive(true);
                 instance.transform.position = position;
                 instance.transform.rotation = rotation;
-                instance.returnPool = this;
+                instance.transform.parent = parent;
+                //instance.returnPool = this;
                 return instance;
             }
             else
@@ -59,6 +62,7 @@ namespace ObjectPool
         public void ReturnToPool(PooledObject instance)
         {
             instance.gameObject.SetActive(false);
+            instance.transform.parent = transform;
             pool.Push(instance);
         }
     }
