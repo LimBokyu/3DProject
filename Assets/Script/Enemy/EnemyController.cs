@@ -14,6 +14,9 @@ public class EnemyController : MonoBehaviour
 
     [SerializeField] private EnemyState state;
 
+    private Rigidbody rigid;
+    private Collider collider;
+
     [SerializeField]
     private Vector3 FirstPosition;
     private Vector3 firstlookat;
@@ -66,6 +69,8 @@ public class EnemyController : MonoBehaviour
         nav = GetComponent<NavMeshAgent>();
         anim = GetComponent<Animator>();
         view = GetComponent<EnemyView>();
+        rigid = GetComponent<Rigidbody>();
+        collider = GetComponent<CapsuleCollider>();
     }
 
     private void Start()
@@ -325,6 +330,9 @@ public class EnemyController : MonoBehaviour
     public void Dead()
     {
         isDead = true;
+        rigid.useGravity = false;
+        Destroy(view);
+        Destroy(collider);
         Debug.Log("EnemyDie");
         anim.SetBool("Executed", true);
         Destroy(gameObject, 10f);

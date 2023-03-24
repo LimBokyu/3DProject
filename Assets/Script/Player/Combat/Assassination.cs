@@ -23,6 +23,8 @@ public class Assassination : MonoBehaviour
 
     [SerializeField] private AssassinationUI ui;
 
+    [SerializeField] private Transform playermid;
+
     [SerializeField] LayerMask enemyMask;
     [SerializeField] LayerMask obstacleMask;
 
@@ -72,7 +74,7 @@ public class Assassination : MonoBehaviour
             SetAssassinationUI();
             AssassinationOrder();
         }
-        else if(!lockon)
+        else if (!lockon)
         {
             NullTarget();
         }
@@ -117,24 +119,6 @@ public class Assassination : MonoBehaviour
             Vector3 rightDir = AngleToDir(transform.eulerAngles.y + angleRange * 0.5f);
             Vector3 leftDir = AngleToDir(transform.eulerAngles.y + -angleRange * 0.5f);
 
-            if (Vector3.Dot(transform.forward, dirToTarget) < Vector3.Dot(transform.forward, rightDir))
-            {
-                lockon = false;
-                continue;
-            }
-                
-            float distToTarget = Vector3.Distance(transform.position, colliders[index].transform.position);
-
-            if (Physics.Raycast(transform.position, dirToTarget, distToTarget, obstacleMask))
-            {
-                lockon = false;
-                continue;
-            }
-
-            Debug.DrawRay(transform.position, dirToTarget * distToTarget, Color.red);
-            Debug.DrawRay(transform.position, rightDir * range, Color.magenta);
-            Debug.DrawRay(transform.position, leftDir * range, Color.magenta);
-
             if (colliders[index].transform.gameObject.GetComponent<Executions>() != null)
             {
                 nearEnemy = colliders[index].transform.gameObject.GetComponent<Executions>();
@@ -146,9 +130,27 @@ public class Assassination : MonoBehaviour
             {
                 nullcount++;
             }
+
+            if (Vector3.Dot(transform.forward, dirToTarget) < Vector3.Dot(transform.forward, rightDir))
+            {
+                lockon = false;
+                continue;
+            }
+
+            float distToTarget = Vector3.Distance(transform.position, colliders[index].transform.position);
+
+            if (Physics.Raycast(transform.position, dirToTarget, distToTarget, obstacleMask))
+            {
+                lockon = false;
+                continue;
+            }
+
+            Debug.DrawRay(transform.position, dirToTarget * distToTarget, Color.red);
+            Debug.DrawRay(transform.position, rightDir * range, Color.magenta);
+            Debug.DrawRay(transform.position, leftDir * range, Color.magenta);
         }
 
-        if(nullcount == colliders.Length)
+        if (nullcount == colliders.Length)
         {
             lockon = false;
         }
@@ -161,37 +163,58 @@ public class Assassination : MonoBehaviour
 
     private void DoAssassination()
     {
-        if(assassinationOrder && lockon)
+        if (assassinationOrder && lockon)
         {
-            pc.anim.SetBool("Executions",true);
-            MoveAssassinationPosition();
-            SetDirection();
-            flash.BladeFlash();
-            playercam.OnVirtualCam();
-            ppcontroller.OverDrivePostProcessing();
-            timeManager.SlowMotion(true);
-            duringassassination = true;
+            pc.anim.SetBool("Executions", true);
             nearEnemy.Execution();
-            pc.executions = true;
-            nearEnemy = null;
+            OnAssassinationSetting();
+            OnAssassinationEffect();
+            SetAssassinationBool();
         }
     }
 
     private void EndAssassination()
     {
         pc.invincible = false;
+        pc.anim.SetBool("Executions", false);
+        OffAssassination();
+        duringassassination = false;
+        pc.executions = false;
+        activate = false;
+        SetPlayerRotation();
+    }
+
+    private void OnAssassinationEffect()
+    {
+        ppcontroller.OverDrivePostProcessing();
+        flash.BladeFlash();
+        playercam.OnVirtualCam();
+        timeManager.SlowMotion(true);
+    }
+
+    private void OffAssassination()
+    {
         ppcontroller.BladeModeSetPostProcessing(false);
         timeManager.SlowMotion(false);
         playercam.OffVirtualCam();
-        pc.anim.SetBool("Executions", false);
-        duringassassination = false;
-        pc.executions = false;
-        SetPlayerRotation();
+    }
+
+    private void OnAssassinationSetting()
+    {
+        MoveAssassinationPosition();
+        SetDirection();
+    }
+
+    private void SetAssassinationBool()
+    {
+        duringassassination = true;
+        pc.executions = true;
+        nearEnemy = null;
     }
 
     private void BloodLust()
     {
-        
+
     }
 
     private void SetAssassinationUI()
