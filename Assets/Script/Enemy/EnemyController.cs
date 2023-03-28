@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 enum EnemyState { Idle, Attack, Alert, Patrol, MoveBack, Dead, Search, Move }
-
+enum EnemyType { Idle, Partol }
 public class EnemyController : MonoBehaviour
 {
     [SerializeField]
@@ -70,7 +70,7 @@ public class EnemyController : MonoBehaviour
         anim = GetComponent<Animator>();
         view = GetComponent<EnemyView>();
         rigid = GetComponent<Rigidbody>();
-        collider = GetComponent<CapsuleCollider>();
+        collider = GetComponent<Collider>();
     }
 
     private void Start()
