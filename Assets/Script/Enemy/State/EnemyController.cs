@@ -4,19 +4,18 @@ using UnityEngine;
 using UnityEngine.AI;
 
 enum EnemyState { Idle, Attack, Alert, Patrol, MoveBack, Dead, Search, Move }
-enum EnemyType { Idle, Partol }
 public class EnemyController : MonoBehaviour
 {
     [SerializeField] private EnemyState state;
 
     // ========= Component ==========
     private NavMeshAgent nav;
-    public Animator anim;
     private Executions executions;
     private EnemyView view;
     private Rigidbody rigid;
     private Collider collider;
     private EnemyAttack enemyattack;
+    public Animator anim;
     // ==============================
 
     // ======== Enemy Alert ==========
@@ -29,7 +28,6 @@ public class EnemyController : MonoBehaviour
     // ===============================
 
     private Coroutine moveBackCoroutine;
-
 
     [SerializeField]
     private Transform target;
@@ -298,8 +296,6 @@ public class EnemyController : MonoBehaviour
         onDamaged = true;
         onHit = true;
         m_HP -= damage;
-        //string TestText = damage.ToString() + " 데미지를 입어 체력이 " + m_HP.ToString() + " 남았습니다";
-        //Debug.Log(TestText);
     }
 
     private void OnTriggerEnter(Collider other)
