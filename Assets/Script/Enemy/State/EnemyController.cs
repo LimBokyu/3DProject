@@ -1,7 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -9,57 +7,53 @@ enum EnemyState { Idle, Attack, Alert, Patrol, MoveBack, Dead, Search, Move }
 enum EnemyType { Idle, Partol }
 public class EnemyController : MonoBehaviour
 {
-    [SerializeField]
-    private int m_HP;
-
     [SerializeField] private EnemyState state;
 
-    private Rigidbody rigid;
-    private Collider collider;
-
-    [SerializeField]
-    private Vector3 FirstPosition;
-    private Vector3 firstlookat;
+    // ========= Component ==========
     private NavMeshAgent nav;
     public Animator anim;
-
-    private Coroutine shotBullet;
-    private Coroutine MoveBackCoroutine;
-    private Coroutine reload = null;
-
-    private EnemyView view;
-
-    public Transform muzzle;
-
-    public GameObject Bullet;
-    public ParticleSystem gunFlash;
-    public AudioSource gunShot;
-
     private Executions executions;
+    private EnemyView view;
+    private Rigidbody rigid;
+    private Collider collider;
+    private EnemyAttack enemyattack;
+    // ==============================
+
+    // ======== Enemy Alert ==========
+    private Vector3 firstlookat;
+    // ===============================
+
+    // ======== MoveBack Logic =======
+    [SerializeField]
+    private Vector3 firstPosition;
+    // ===============================
+
+    private Coroutine moveBackCoroutine;
+
 
     [SerializeField]
-    private Transform Target;
+    private Transform target;
 
     [SerializeField]
     private LayerMask alliesMask;
-
-    [SerializeField]
-    private int Ammo;
+    //==============
 
     private Vector3 dir;
     private float rotTimer = 0;
     private float rotationpercent = 1.5f;
-
+       
+    // ======== Enemy Status =========
     [SerializeField]
-    private float reloadtimer = 0;
+    private int m_HP;
+    // ===============================
 
     //======== state of bool =========
     private bool isMoving = false;
     private bool isDead = false;
     private bool onDamaged = false;
-    private bool EnemySearch = false;
-    private bool OnCombat = false;
-    private bool InShootingRange = false;
+    private bool enemySearch = false;
+    private bool onCombat = false;
+    private bool inShootingRange = false;
     private bool onHit = false;
     //================================
 
@@ -71,26 +65,16 @@ public class EnemyController : MonoBehaviour
         view = GetComponent<EnemyView>();
         rigid = GetComponent<Rigidbody>();
         collider = GetComponent<Collider>();
+        enemyattack = GetComponent<EnemyAttack>();
     }
 
     private void Start()
     {
         m_HP = 100;
         state = EnemyState.Idle;
-        Target = null;
-        shotBullet = null;
-        MoveBackCoroutine = null;
-        Ammo = 7;
-        FirstPosition = transform.position;
-
-        
-        foreach(AnimationClip clip in anim.runtimeAnimatorController.animationClips)
-        {
-            if(clip.name == "Reloading")
-            {
-                reloadtimer = clip.length;
-            }
-        }
+        target = null;
+        moveBackCoroutine = null;
+        firstPosition = transform.position;
     }
 
     private void Update()
@@ -110,7 +94,7 @@ public class EnemyController : MonoBehaviour
                 break;
 
             case EnemyState.Attack:
-                Attack();
+                enemyattack.AttackBehaviour();
                 break;
 
             case EnemyState.Patrol:
@@ -127,7 +111,6 @@ public class EnemyController : MonoBehaviour
                 break;
         }
 
-        //SetTarget();
         Move();
         EnemySight();
         CheckHP();
@@ -137,73 +120,46 @@ public class EnemyController : MonoBehaviour
 
     public bool GetCombat()
     {
-        return OnCombat;
-    }
-
-    private IEnumerator Shoot()
-    {
-        yield return new WaitForSeconds(0.98f);
-        anim.SetBool("OnAttack", true);
-        gunFlash.Play();
-        gunShot.Play();
-        Instantiate(Bullet, muzzle.position, transform.rotation);
-        Ammo -= 1;
-        shotBullet = null;
+        return onCombat;
     }
 
     private void EnemySight()
     {
         if (null != view.GetTarget())
         {
-            Target = view.GetTarget();
+            target = view.GetTarget();
             state = EnemyState.Alert;
         }
         else
         {
-            Target = null;
-            OnCombat = false;
+            target = null;
+            onCombat = false;
         }
-        // 작은 범위내에
-        // 걸리면 state -> alert
+        // Player가 범위 내에 들어와 Target으로 설정되었을 경우 state -> alert
     }
 
     private void MoveBack()
     {
-        OnCombat = false;
+        onCombat = false;
 
-        if (MoveBackCoroutine == null)
+        if (moveBackCoroutine == null)
         {
             //Debug.Log("Call MoveBack Coroutine");
-            MoveBackCoroutine = StartCoroutine(BackToFirstPosition());
+            moveBackCoroutine = StartCoroutine(BackToFirstPosition());
         }
 
         isMoving = true;
 
-        if((FirstPosition - transform.position).sqrMagnitude < 0.5f)
+        if((firstPosition - transform.position).sqrMagnitude < 0.5f)
         {
             state = EnemyState.Idle;
             isMoving = false;
             nav.Stop();
-            StopCoroutine(MoveBackCoroutine);
-            MoveBackCoroutine = null;
+            StopCoroutine(moveBackCoroutine);
+            moveBackCoroutine = null;
         }
     }
 
-
-    private void Reload()
-    {
-        if(reload == null)
-            reload = StartCoroutine(ReloadCoroutine());
-    }
-
-    private IEnumerator ReloadCoroutine()
-    {
-        anim.SetBool("Reload", true);
-        yield return new WaitForSeconds(reloadtimer);
-        anim.SetBool("Reload", false);
-        Ammo = 7;
-        reload = null;
-    }
     private void UpdateAnim()
     {
         anim.SetBool("isMoving",isMoving);
@@ -216,25 +172,25 @@ public class EnemyController : MonoBehaviour
 
     public bool GetSearch()
     {
-        return EnemySearch;
+        return enemySearch;
     }
 
     private void StateUpdate()
     {
         if (isDead)
             state = EnemyState.Dead;
-        else if (!OnCombat)
+        else if (!onCombat)
         {
             if (onDamaged)
                 state = EnemyState.Alert;
             else if (isMoving)
                 state = EnemyState.Move;
         }
-        else if (OnCombat)
+        else if (onCombat)
         {
-            if (Target != null)
+            if (target != null)
                 state = EnemyState.Attack;
-            else if (EnemySearch)
+            else if (enemySearch)
                 state = EnemyState.Search;
         }
         else
@@ -243,12 +199,12 @@ public class EnemyController : MonoBehaviour
 
     public void Alert()
     {
-        OnCombat = true;
+        onCombat = true;
         firstlookat = transform.forward;
         anim.SetBool("Alert",true);
         if (onHit)
             CheckNearAllies();
-        Attack();
+        enemyattack.AttackBehaviour();
     }
 
     private void CheckNearAllies()
@@ -270,19 +226,19 @@ public class EnemyController : MonoBehaviour
 
     private void Move()
     {
-        if (Target != null)
+        if (target != null)
         {
             if (view.isInRange())
             {
                 rotTimer += Time.deltaTime;
                 float per = rotTimer / rotationpercent;
-                dir = Target.position - transform.position;
+                dir = target.position - transform.position;
                 dir.y = 0f;
                 Quaternion rot = Quaternion.LookRotation(dir.normalized);
 
                 transform.forward = Vector3.Lerp(firstlookat, dir, per);
-                if (EnemySearch)
-                    EnemySearch = !EnemySearch;
+                if (enemySearch)
+                    enemySearch = !enemySearch;
                 StopMoving();
             }
             else
@@ -290,10 +246,9 @@ public class EnemyController : MonoBehaviour
                 if (anim.GetBool("OnAttack"))
                     anim.SetBool("OnAttack", false);
 
-                StopCoroutine(Shoot());
                 isMoving = true;
                 nav.Resume();
-                nav.destination = Target.position;
+                nav.destination = target.position;
             }
         }
         else
@@ -310,7 +265,7 @@ public class EnemyController : MonoBehaviour
     {
         yield return new WaitForSeconds(2f);
         nav.Resume();
-        nav.destination = FirstPosition;
+        nav.destination = firstPosition;
     }
 
     private void StopMoving()
@@ -345,27 +300,6 @@ public class EnemyController : MonoBehaviour
         m_HP -= damage;
         //string TestText = damage.ToString() + " 데미지를 입어 체력이 " + m_HP.ToString() + " 남았습니다";
         //Debug.Log(TestText);
-    }
-
-    private void Attack()
-    {
-        if(Ammo == 0)
-        {
-            Reload();
-        }
-        else
-        {
-            onDamaged = false;
-            if (OnCombat && view.GetTarget() == null)
-            {
-                EnemySearch = true;
-                return;
-            }
-
-
-            if (shotBullet == null)
-                shotBullet = StartCoroutine(Shoot());
-        }
     }
 
     private void OnTriggerEnter(Collider other)

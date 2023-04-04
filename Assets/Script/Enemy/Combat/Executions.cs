@@ -34,13 +34,22 @@ public class Executions : MonoBehaviour
     public void GetAssassinationRange()
     {
         Collider[] colliders = Physics.OverlapSphere(transform.position, range, playerMask);
+        Assassination assassination = null;
+
         for (int i = 0; i < colliders.Length; i++)
         {
             Vector3 dirToTarget = (colliders[i].transform.position - transform.position).normalized;
             Vector3 rightDir = AngleToDir(transform.eulerAngles.y + angleRange * 0.5f);
 
             if (Vector3.Dot(-transform.forward, dirToTarget) < Vector3.Dot(-transform.forward, rightDir))
+            {
+                colliders[i].gameObject.TryGetComponent<Assassination>(out assassination);
+                if(assassination != null)
+                {
+                    assassination.SetActivate(false);
+                }
                 continue;
+            }
 
             float distToTarget = Vector3.Distance(transform.position, colliders[i].transform.position);
 
@@ -49,14 +58,14 @@ public class Executions : MonoBehaviour
 
             Debug.DrawRay(transform.position, dirToTarget * distToTarget, Color.green);
 
-            Assassination assasination = colliders[i].gameObject.GetComponent<Assassination>();
+            colliders[i].gameObject.TryGetComponent<Assassination>(out assassination);
 
-            if (assasination != null)
+            if (assassination != null)
             {
                 Debug.Log("플레이어가 범위 내로 들어옴");
                 inRange = true;
-                assasination.SetTarget(offsetTransform);
-                assasination.SetActivate(inRange);
+                assassination.SetTarget(offsetTransform);
+                assassination.SetActivate(inRange);
             }
             else
             {
@@ -64,7 +73,9 @@ public class Executions : MonoBehaviour
             }
         }
 
-        if(colliders.Length == 0)
+        assassination = null;
+
+        if (colliders.Length == 0)
         {
             CheckOutRanged();
         }
@@ -78,15 +89,16 @@ public class Executions : MonoBehaviour
 
     private void CheckOutRanged()
     {
+        Assassination assassination = null;
         if (inRange)
             return;
         Collider[] colliders = Physics.OverlapSphere(transform.position, outrange, playerMask);
         for(int index=0; index < colliders.Length; index++)
         {
-            Assassination assasination = colliders[index].gameObject.GetComponent<Assassination>();
-            if (assasination != null)
+            colliders[index].gameObject.TryGetComponent<Assassination>(out assassination);
+            if (assassination != null)
             {
-                assasination.SetActivate(false);
+                assassination.SetActivate(false);
             }
         }
     }
