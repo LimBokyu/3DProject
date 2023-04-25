@@ -17,21 +17,22 @@ public class Assassination : MonoBehaviour
     // ========================
 
     // ===== Target Enemy =====
-    private Transform target = null;
+    [SerializeField] private Transform target = null;
     [SerializeField] private Executions nearEnemy;
     // ========================
 
     [SerializeField] private AssassinationUI ui;
 
     [SerializeField] private Transform playermid;
+    [SerializeField] private Vector3 offset = Vector3.zero;
+    [SerializeField] private Vector3 executionszone = Vector3.zero;
 
     [SerializeField] LayerMask enemyMask;
     [SerializeField] LayerMask obstacleMask;
 
-    private bool activate = false;
     private bool assassinationOrder = false;
     private bool lockon = false;
-    private bool duringassassination = false;
+    private bool duringAssassination = false;
 
     private float range = 1.5f;
     private float angleRange = 30f;
@@ -48,28 +49,24 @@ public class Assassination : MonoBehaviour
         flash = pc.flash;
     }
 
-    public void SetActivate(bool value)
-    {
-        activate = value;
-    }
-
-    public bool GetActivate()
-    {
-        return activate;
-    }
-
     public void AssassinationBehaviour()
     {
         inputTimer += Time.unscaledDeltaTime;
-        if (inputTimer > 2f)
+        if (inputTimer >= 2f)
         {
             EndAssassination();
+            inputTimer = 0f;
         }
+    }
+
+    public bool GetLockOn()
+    {
+        return lockon;
     }
 
     public void CheckAssasination()
     {
-        if (activate && lockon)
+        if (lockon)
         {
             SetAssassinationUI();
             AssassinationOrder();
@@ -88,7 +85,7 @@ public class Assassination : MonoBehaviour
 
     public void AssassinationOrder()
     {
-        if (activate && lockon && Input.GetButtonDown("Fire1"))
+        if (lockon && Input.GetButtonDown("Fire1"))
         {
             ui.EndAnimation();
             pc.invincible = true;
@@ -121,9 +118,10 @@ public class Assassination : MonoBehaviour
 
             if (colliders[index].transform.gameObject.GetComponent<Executions>() != null)
             {
-                nearEnemy = colliders[index].transform.gameObject.GetComponent<Executions>();
-                ui.startAnimation();
                 lockon = true;
+                nearEnemy = colliders[index].transform.gameObject.GetComponent<Executions>();
+                nearEnemy.GetAssassinationRange();
+                ui.startAnimation();
                 break;
             }
             else
@@ -158,7 +156,8 @@ public class Assassination : MonoBehaviour
 
     private void MoveAssassinationPosition()
     {
-        transform.position = nearEnemy.GetAssassinationZone().position;
+        offset = nearEnemy.GetAssassinationZone().position;
+        transform.position = offset;
     }
 
     private void DoAssassination()
@@ -166,9 +165,10 @@ public class Assassination : MonoBehaviour
         if (assassinationOrder && lockon)
         {
             pc.anim.SetBool("Executions", true);
-            nearEnemy.Execution();
             OnAssassinationSetting();
             OnAssassinationEffect();
+            nearEnemy.SetAnimSpeed(true);
+            nearEnemy.Execution();
             SetAssassinationBool();
         }
     }
@@ -177,11 +177,17 @@ public class Assassination : MonoBehaviour
     {
         pc.invincible = false;
         pc.anim.SetBool("Executions", false);
+        nearEnemy.SetAnimSpeed(false);
+        nearEnemy = null;
         OffAssassination();
-        duringassassination = false;
+        duringAssassination = false;
+        assassinationOrder = false;
+        lockon = false;
+        offset = Vector3.zero;
         pc.executions = false;
-        activate = false;
         SetPlayerRotation();
+        
+        // 암살 수행이 끝났을 경우 세팅을 원상복귀하기 위한 함수
     }
 
     private void OnAssassinationEffect()
@@ -190,6 +196,8 @@ public class Assassination : MonoBehaviour
         flash.BladeFlash();
         playercam.OnVirtualCam();
         timeManager.SlowMotion(true);
+
+        // 암살 수행시의 효과를 세팅해주는 함수
     }
 
     private void OffAssassination()
@@ -197,6 +205,8 @@ public class Assassination : MonoBehaviour
         ppcontroller.BladeModeSetPostProcessing(false);
         timeManager.SlowMotion(false);
         playercam.OffVirtualCam();
+
+        // 암살 종료시의 효과를 꺼주는 함수
     }
 
     private void OnAssassinationSetting()
@@ -207,9 +217,8 @@ public class Assassination : MonoBehaviour
 
     private void SetAssassinationBool()
     {
-        duringassassination = true;
+        duringAssassination = true;
         pc.executions = true;
-        nearEnemy = null;
     }
 
     private void BloodLust()
@@ -224,14 +233,10 @@ public class Assassination : MonoBehaviour
 
     private void SetDirection()
     {
-        if (target != null)
-            transform.LookAt(target.position);
+        target = nearEnemy.GetOffsetTransform();
+        transform.LookAt(target.position);
     }
 
-    public void SetTarget(Transform transform)
-    {
-        target = transform;
-    }
     private Vector3 AngleToDir(float angle)
     {
         float radian = angle * Mathf.Deg2Rad;

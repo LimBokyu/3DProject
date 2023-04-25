@@ -7,6 +7,7 @@ public class EnemyAttack : MonoBehaviour
     private int ammo;
     private Coroutine shotBullet;
     private Coroutine reload = null;
+    private Vector3 dir;
 
     public Transform muzzle;
 
@@ -18,10 +19,9 @@ public class EnemyAttack : MonoBehaviour
 
     public AudioSource gunShot;
 
-
     public void AttackBehaviour()
     {
-
+        Attack();
     }
 
     private void Attack()
@@ -30,22 +30,25 @@ public class EnemyAttack : MonoBehaviour
         {
             Reload();
         }
-        else
-        {
-
-            if (shotBullet == null)
-                shotBullet = StartCoroutine(Shoot());
-        }
     }
 
-    private IEnumerator Shoot()
+    private Quaternion ApplyRecoil()
     {
-        yield return new WaitForSeconds(0.98f);
+        dir = new Vector3(transform.rotation.x + Random.Range(0f, 3f),
+                          transform.rotation.y + Random.Range(0f, 3f),
+                          transform.rotation.z);
+        return Quaternion.Euler(dir);
+    }
+
+    public void Shoot()
+    {
         gunFlash.Play();
         gunShot.Play();
-        Instantiate(bullet, muzzle.position, transform.rotation);
+        Instantiate(bullet, muzzle.position, ApplyRecoil());
         ammo -= 1;
         shotBullet = null;
+
+        // 이 함수를 코루틴이 아닌 애니메이션 이벤트로 전환 시킬것
     }
 
     private void Reload()

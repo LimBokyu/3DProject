@@ -2,10 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
 
-enum EnemyState { Idle, Attack, Alert, Patrol, MoveBack, Dead, Search, Move }
+enum EnemyState { Idle, Attack, Alert, Patrol, MoveBack, Dead, Chase }
 public class EnemyController : MonoBehaviour
 {
     [SerializeField] private EnemyState state;
@@ -15,8 +16,9 @@ public class EnemyController : MonoBehaviour
     private Executions executions;
     private EnemyView view;
     private Rigidbody rigid;
-    private Collider collider;
-    private EnemyAttack enemyattack;
+    private Collider col;
+    private EnemyAttack enemyAttack;
+    private EnemyPatrol enemyPatrol;
     public Animator anim;
     // ==============================
 
@@ -39,7 +41,7 @@ public class EnemyController : MonoBehaviour
     //==============
 
     private Vector3 dir;
-    private float rotTimer = 0;
+    private float rotTimer = 0f;
     private float rotationpercent = 1.5f;
        
     // ======== Enemy Status =========
@@ -47,7 +49,7 @@ public class EnemyController : MonoBehaviour
     private int m_HP;
     // ===============================
 
-    //======== state of bool =========
+    // ======== state of bool ========
     private bool isMoving = false;
     private bool isDead = false;
     private bool onDamaged = false;
@@ -55,7 +57,11 @@ public class EnemyController : MonoBehaviour
     private bool onCombat = false;
     private bool inShootingRange = false;
     private bool onHit = false;
-    //================================
+    private bool onMoveBack = false;
+    private bool onAlert = false;
+    private bool onChase = false;
+    public bool isPatrol = false;
+    // ===============================
 
     private void Awake()
     {
@@ -64,8 +70,9 @@ public class EnemyController : MonoBehaviour
         anim = GetComponent<Animator>();
         view = GetComponent<EnemyView>();
         rigid = GetComponent<Rigidbody>();
-        collider = GetComponent<Collider>();
-        enemyattack = GetComponent<EnemyAttack>();
+        col = GetComponent<Collider>();
+        enemyAttack = GetComponent<EnemyAttack>();
+        enemyPatrol = GetComponent<EnemyPatrol>();
     }
 
     private void Start()
@@ -82,11 +89,9 @@ public class EnemyController : MonoBehaviour
         switch (state)
         {
             case EnemyState.Dead:
-                Dead();
                 break;
 
             case EnemyState.Idle:
-                executions.GetAssassinationRange();
                 break;
 
             case EnemyState.Alert:
@@ -94,19 +99,16 @@ public class EnemyController : MonoBehaviour
                 break;
 
             case EnemyState.Attack:
-                enemyattack.AttackBehaviour();
+                enemyAttack.AttackBehaviour();
                 break;
 
             case EnemyState.Patrol:
-                executions.GetAssassinationRange();
                 break;
 
-            case EnemyState.Search:
-                SearchEnemy();
+            case EnemyState.Chase:
                 break;
 
             case EnemyState.MoveBack:
-                executions.GetAssassinationRange();
                 MoveBack();
                 break;
         }
@@ -118,7 +120,34 @@ public class EnemyController : MonoBehaviour
         UpdateAnim();
     }
 
-    public bool GetCombat()
+    private void StateUpdate()
+    {
+        if (isDead)
+            state = EnemyState.Dead;
+        else if (!onCombat)
+        {
+            if (onDamaged || onAlert)
+                state = EnemyState.Alert;
+            else if (onMoveBack)
+                state = EnemyState.MoveBack;
+            else
+            {
+                if (isPatrol)
+                    state = EnemyState.Patrol;
+                else
+                    state = EnemyState.Idle;
+            }
+        }
+        else if (onCombat)
+        {
+            if (target != null)
+                state = EnemyState.Attack;
+            else if (onChase)
+                state = EnemyState.Chase;
+        }
+    }
+
+    public bool GetCombatState()
     {
         return onCombat;
     }
@@ -128,14 +157,14 @@ public class EnemyController : MonoBehaviour
         if (null != view.GetTarget())
         {
             target = view.GetTarget();
-            state = EnemyState.Alert;
+            onAlert = true;
         }
         else
         {
             target = null;
             onCombat = false;
         }
-        // Player°¡ ¹üÀ§ ³»¿¡ µé¾î¿Í TargetÀ¸·Î ¼³Á¤µÇ¾úÀ» °æ¿ì state -> alert
+        // Playerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Targetï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ state -> alert
     }
 
     private void MoveBack()
@@ -150,11 +179,11 @@ public class EnemyController : MonoBehaviour
 
         isMoving = true;
 
-        if((firstPosition - transform.position).sqrMagnitude < 0.5f)
+        if((firstPosition - transform.position).sqrMagnitude <= 0.5f)
         {
             state = EnemyState.Idle;
             isMoving = false;
-            nav.Stop();
+            nav.isStopped = true;
             StopCoroutine(moveBackCoroutine);
             moveBackCoroutine = null;
         }
@@ -167,34 +196,12 @@ public class EnemyController : MonoBehaviour
 
     private void SearchEnemy()
     {
-        
+
     }
 
     public bool GetSearch()
     {
         return enemySearch;
-    }
-
-    private void StateUpdate()
-    {
-        if (isDead)
-            state = EnemyState.Dead;
-        else if (!onCombat)
-        {
-            if (onDamaged)
-                state = EnemyState.Alert;
-            else if (isMoving)
-                state = EnemyState.Move;
-        }
-        else if (onCombat)
-        {
-            if (target != null)
-                state = EnemyState.Attack;
-            else if (enemySearch)
-                state = EnemyState.Search;
-        }
-        else
-            state = EnemyState.Idle;
     }
 
     public void Alert()
@@ -204,7 +211,7 @@ public class EnemyController : MonoBehaviour
         anim.SetBool("Alert",true);
         if (onHit)
             CheckNearAllies();
-        enemyattack.AttackBehaviour();
+        enemyAttack.AttackBehaviour();
     }
 
     private void CheckNearAllies()
@@ -247,7 +254,7 @@ public class EnemyController : MonoBehaviour
                     anim.SetBool("OnAttack", false);
 
                 isMoving = true;
-                nav.Resume();
+                NavControl(false);
                 nav.destination = target.position;
             }
         }
@@ -261,24 +268,34 @@ public class EnemyController : MonoBehaviour
         }
     }
 
+    private void NavControl(bool value)
+    {
+        nav.isStopped = value;
+    }
+
+    public void SetNextPatrolPoiont(Transform point)
+    {
+        nav.SetDestination(point.position);
+    }
+
     private IEnumerator BackToFirstPosition()
     {
         yield return new WaitForSeconds(2f);
-        nav.Resume();
+        NavControl(false);
         nav.destination = firstPosition;
     }
 
     private void StopMoving()
     {
         isMoving = false;
-        nav.Stop();
+        NavControl(true);
     }
 
     private void CheckHP()
     {
         if(m_HP <= 0)
         {
-            isDead = true;
+            Dead();
         }
     }
 
@@ -287,7 +304,7 @@ public class EnemyController : MonoBehaviour
         isDead = true;
         rigid.useGravity = false;
         Destroy(view);
-        Destroy(collider);
+        Destroy(GetComponent<Collider>());
         Debug.Log("EnemyDie");
         anim.SetBool("Executed", true);
         Destroy(gameObject, 10f);

@@ -1,7 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.UIElements;
 using static Cinemachine.CinemachineOrbitalTransposer;
 
 public class PostProcessingController : MonoBehaviour
@@ -16,22 +19,19 @@ public class PostProcessingController : MonoBehaviour
     private Color blademodecolor;
     private Color overdrivecolor;
 
+    [SerializeField]
+    private GameObject vol;
+
     private Vignette vig;
     private ChromaticAberration chrom;
-    private ColorGrading grading;
 
     private float overdriveintencity = 0.4f;
     private float overdrivesmoothness = 0.8f;
 
-    private void Awake()
+    private void Start()
     {
-        vig = Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<Vignette>();
-        chrom = Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<ChromaticAberration>();
-        grading = Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<ColorGrading>();
-
-        //blademodecolor = new Color(72f, 168f, 214f, 255f);
-        blademodecolor = vig.color;
-        overdrivecolor = new Color(214f, 72f, 88f, 255f);
+        vol.GetComponent<Volume>().profile.TryGet(out vig);
+        vol.GetComponent<Volume>().profile.TryGet(out chrom);
     }
 
     private IEnumerator SetChrom(float beginchrom, float endchrom, bool OnBladeMode)
@@ -100,31 +100,29 @@ public class PostProcessingController : MonoBehaviour
         float startchrom = OnBladeMode ? NormalChrom : ZoomChrom;
         float endchrom = OnBladeMode ? ZoomChrom : NormalChrom;
 
-        vig.color.Override(blademodecolor);
         StartCoroutine(SetChrom(startchrom, endchrom, OnBladeMode));
         StartCoroutine(SetVig(startvig, endvig, OnBladeMode));
     }
 
     public void OverDrivePostProcessing()
     {
-        vig.color.Override(Color.red);
         BladeModeSetPostProcessing(true);
     }
 
     private void CameraVigSet(float vigval)
     {
-        vig.intensity.value = vigval;
+        vig.intensity.Override(vigval);
     }
 
     private void CameraChromSet(float chromval)
     {
-        chrom.intensity.value = chromval;
+        chrom.intensity.Override(chromval);
     }
 
     public void OnOffColorGrading(bool value)
     {
         //Camera.main.GetComponentInChildren<PostProcessVolume>().profile.GetSetting<ColorGrading>().active = value;
         //grading.active = value;
-        grading.enabled.Override(value);
+        //grading.enabled.Override(value);
     }
 }

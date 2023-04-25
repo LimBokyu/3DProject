@@ -36,7 +36,7 @@ public class PlayerAttack : MonoBehaviour
 
     public void AttackOrder()
     {
-        if (assassination.GetActivate())
+        if (assassination.GetLockOn())
             return;
 
         if (Input.GetButtonDown("Fire1"))
@@ -134,7 +134,6 @@ public class PlayerAttack : MonoBehaviour
         dashAttack.Add(name, new AttackTime(name, 0.05f, 0.3f, 0.4f));
         name = "DashAttack2";
         dashAttack.Add(name, new AttackTime(name, 0.05f, 0.3f, 0.4f));
-
     }
 
     public void DashAttackOrder()
@@ -175,7 +174,6 @@ public class PlayerAttack : MonoBehaviour
         AttackTime dashattack;
         string key = isRight ? "DashAttack1" : "DashAttack2";
         dashAttack.TryGetValue(key,out dashattack);
-
         if (dashattack.startattack <= attackTimer
             && dashattack.endanim > attackTimer)
         {

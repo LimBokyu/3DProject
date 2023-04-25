@@ -4,6 +4,8 @@ using UnityEngine;
 enum EnemyType { None, Partol }
 public class EnemyPatrol : MonoBehaviour
 {
+    private EnemyController controller;
+
     [SerializeField]
     private Transform[] patrolPoint;
 
@@ -12,14 +14,15 @@ public class EnemyPatrol : MonoBehaviour
 
     private List<Transform> patrolPoints;
 
-    private bool onPatrolPoint = false;
     private int patrolPointnum = 0;
 
     private bool isCyclingPatrol;
+    private bool reverse = false;
 
     private void Awake()
     {
         isCyclingPatrol = enemyType == EnemyType.None ? false : true;
+        controller = GetComponent<EnemyController>();
     }
     private void Start()
     {
@@ -29,6 +32,13 @@ public class EnemyPatrol : MonoBehaviour
         {
             patrolPoints.Add(patrolPoint[index]);
         }
+
+        IsPatrolling();
+    }
+
+    private void IsPatrolling()
+    {
+        controller.isPatrol = enemyType == EnemyType.Partol ? true : false;
     }
 
     public void PatrolBehaviour()
@@ -42,14 +52,29 @@ public class EnemyPatrol : MonoBehaviour
 
         if(dis <= 0.5f)
         {
-            if (patrolPointnum >= patrolPoints.Count)
+            if(isCyclingPatrol)
             {
-                patrolPointnum = 0;
+                if((patrolPointnum == 0 && reverse) ||
+                   (patrolPointnum >= patrolPoints.Count && !reverse))
+                {
+                    reverse = !reverse;
+                }
+
+                patrolPointnum = reverse ? patrolPointnum-- : patrolPointnum++;
             }
             else
             {
-                patrolPointnum++;
+                if (patrolPointnum >= patrolPoints.Count)
+                {
+                    patrolPointnum = 0;
+                }
+                else
+                {
+                    patrolPointnum++;
+                }
             }
+
+            controller.SetNextPatrolPoiont(patrolPoint[patrolPointnum]);
         }
     }
 }

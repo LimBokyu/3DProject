@@ -49,7 +49,7 @@ public class NinjaRun : MonoBehaviour
         foreach (Collider col in colliders)
         {
             Vector3 pos = col.transform.position;
-            playerCam.CameraShakeNormalTimeScale();
+            playerCam.CameraShake();
             Destroy(col.gameObject);
         }
     }

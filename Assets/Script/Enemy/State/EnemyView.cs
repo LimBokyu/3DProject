@@ -43,7 +43,7 @@ public class EnemyView : MonoBehaviour
 
     private void CheckCombat()
     {
-        OnCombat = con.GetCombat();
+        OnCombat = con.GetCombatState();
     }
 
     private void SetRange()
