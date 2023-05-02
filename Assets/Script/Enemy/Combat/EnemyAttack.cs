@@ -5,7 +5,6 @@ using UnityEngine;
 public class EnemyAttack : MonoBehaviour
 {
     private int ammo;
-    private Coroutine shotBullet;
     private Coroutine reload = null;
     private Vector3 dir;
 
@@ -46,9 +45,6 @@ public class EnemyAttack : MonoBehaviour
         gunShot.Play();
         Instantiate(bullet, muzzle.position, ApplyRecoil());
         ammo -= 1;
-        shotBullet = null;
-
-        // 이 함수를 코루틴이 아닌 애니메이션 이벤트로 전환 시킬것
     }
 
     private void Reload()

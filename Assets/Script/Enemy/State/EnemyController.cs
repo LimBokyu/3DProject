@@ -12,13 +12,13 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private EnemyState state;
 
     // ========= Component ==========
-    private NavMeshAgent nav;
     private Executions executions;
     private EnemyView view;
     private Rigidbody rigid;
     private Collider col;
     private EnemyAttack enemyAttack;
     private EnemyPatrol enemyPatrol;
+    private EnemyMove enemyMove;
     public Animator anim;
     // ==============================
 
@@ -66,7 +66,6 @@ public class EnemyController : MonoBehaviour
     private void Awake()
     {
         executions = GetComponent<Executions>();
-        nav = GetComponent<NavMeshAgent>();
         anim = GetComponent<Animator>();
         view = GetComponent<EnemyView>();
         rigid = GetComponent<Rigidbody>();
@@ -189,7 +188,7 @@ public class EnemyController : MonoBehaviour
         {
             state = EnemyState.Idle;
             isMoving = false;
-            nav.isStopped = true;
+            enemyMove.SetNavMeshMoving(true);
             StopCoroutine(moveBackCoroutine);
             moveBackCoroutine = null;
         }
@@ -198,11 +197,6 @@ public class EnemyController : MonoBehaviour
     private void UpdateAnim()
     {
         anim.SetBool("isMoving",isMoving);
-    }
-
-    private void SearchEnemy()
-    {
-
     }
 
     public bool GetSearch()
@@ -261,12 +255,12 @@ public class EnemyController : MonoBehaviour
 
                 isMoving = true;
                 NavControl(false);
-                nav.destination = target.position;
+                enemyMove.SetNavAgentDestination(target.position);
             }
         }
         else
         {
-            if (view.GetTarget() == null && (nav.destination - transform.position).sqrMagnitude < 0.5f)
+            if (view.GetTarget() == null && (enemyMove.GetNavAgentDestination() - transform.position).sqrMagnitude < 0.5f)
             {
                 isMoving = false;
                 state = EnemyState.MoveBack;
@@ -274,9 +268,9 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    public void SetMoveSpeed()
+    public void SetMoveSpeed(bool value)
     {
-        nav.speed = isPatrol ? 1f : 3.5f;
+        enemyMove.SetNavSpeed(value);
     }
 
     private void NavControl(bool value)
@@ -314,11 +308,18 @@ public class EnemyController : MonoBehaviour
     {
         isDead = true;
         rigid.useGravity = false;
-        Destroy(view);
-        Destroy(GetComponent<Collider>());
+        DisableEnemyComponent();
         Debug.Log("EnemyDie");
         anim.SetBool("Executed", true);
         Destroy(gameObject, 10f);
+    }
+
+    private void DisableEnemyComponent()
+    {
+        Destroy(view);
+        Destroy(enemyPatrol);
+        Destroy(enemyAttack);
+        Destroy(GetComponent<Collider>());
     }
     
     public void TakeDamage(int damage)
