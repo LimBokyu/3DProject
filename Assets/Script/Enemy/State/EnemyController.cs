@@ -29,9 +29,8 @@ public class EnemyController : MonoBehaviour
     // ======== MoveBack Logic =======
     [SerializeField]
     private Vector3 firstPosition;
-    // ===============================
-
     private Coroutine moveBackCoroutine;
+    // ===============================
 
     [SerializeField]
     private Transform target;
@@ -40,9 +39,11 @@ public class EnemyController : MonoBehaviour
     private LayerMask alliesMask;
     //==============
 
+    // ======= Enemy Rotation ========
     private Vector3 dir;
     private float rotTimer = 0f;
     private float rotationpercent = 1.5f;
+    // ===============================
        
     // ======== Enemy Status =========
     [SerializeField]
@@ -60,7 +61,7 @@ public class EnemyController : MonoBehaviour
     private bool onMoveBack = false;
     private bool onAlert = false;
     private bool onChase = false;
-    public bool isPatrol = false;
+    public  bool isPatrol = false;
     // ===============================
 
     private void Awake()
@@ -106,6 +107,7 @@ public class EnemyController : MonoBehaviour
                 break;
 
             case EnemyState.Chase:
+                Move();
                 break;
 
             case EnemyState.MoveBack:
@@ -113,7 +115,6 @@ public class EnemyController : MonoBehaviour
                 break;
         }
 
-        //Move();
         EnemySight();
         CheckHP();
         StateUpdate();
@@ -254,7 +255,7 @@ public class EnemyController : MonoBehaviour
                     anim.SetBool("OnAttack", false);
 
                 isMoving = true;
-                NavControl(false);
+                // Nav <- Stop;
                 enemyMove.SetNavAgentDestination(target.position);
             }
         }
@@ -268,32 +269,17 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    public void SetMoveSpeed(bool value)
-    {
-        enemyMove.SetNavSpeed(value);
-    }
-
-    private void NavControl(bool value)
-    {
-        nav.isStopped = value;
-    }
-
-    public void SetNextPatrolPoiont(Transform point)
-    {
-        nav.SetDestination(point.position);
-    }
-
     private IEnumerator BackToFirstPosition()
     {
         yield return new WaitForSeconds(2f);
-        NavControl(false);
-        nav.destination = firstPosition;
+        //NavControl(false);
+        //nav.destination = firstPosition;
     }
 
     private void StopMoving()
     {
         isMoving = false;
-        NavControl(true);
+        
     }
 
     private void CheckHP()

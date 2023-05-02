@@ -21,23 +21,31 @@ public class Assassination : MonoBehaviour
     [SerializeField] private Executions nearEnemy;
     // ========================
 
+    // ===== For Setting ======
     [SerializeField] private AssassinationUI ui;
-
     [SerializeField] private Transform playermid;
     [SerializeField] private Vector3 offset = Vector3.zero;
-    [SerializeField] private Vector3 executionszone = Vector3.zero;
+    // ========================
 
+    // ====== LayerMask ======
     [SerializeField] LayerMask enemyMask;
     [SerializeField] LayerMask obstacleMask;
+    // =======================
 
+    // ======= Assassination Bool ========
     private bool assassinationOrder = false;
     private bool lockon = false;
     private bool duringAssassination = false;
+    // ===================================
 
+    // ===== Assassination Range =====
     private float range = 1.5f;
     private float angleRange = 30f;
-    private float inputTimer = 0;
+    // ===============================
 
+    // ======== Timer ==========
+    private float inputTimer = 0f;
+    // =========================
     private void Awake()
     {
         pc = GetComponent<PlayerController>();
@@ -80,7 +88,7 @@ public class Assassination : MonoBehaviour
 
     private void SetPlayerRotation()
     {
-        transform.rotation = Quaternion.Euler(0, transform.rotation.y, 0).normalized;
+        transform.rotation = Quaternion.Euler(0f, transform.rotation.y, 0f).normalized;
     }
 
     public void AssassinationOrder()
@@ -169,25 +177,30 @@ public class Assassination : MonoBehaviour
             OnAssassinationEffect();
             nearEnemy.SetAnimSpeed(true);
             nearEnemy.Execution();
-            SetAssassinationBool();
+            OnAssassinationBool();
         }
     }
 
     private void EndAssassination()
     {
-        pc.invincible = false;
         pc.anim.SetBool("Executions", false);
         nearEnemy.SetAnimSpeed(false);
         nearEnemy = null;
         OffAssassination();
-        duringAssassination = false;
-        assassinationOrder = false;
-        lockon = false;
         offset = Vector3.zero;
-        pc.executions = false;
+        OffAssassinationBool();
         SetPlayerRotation();
         
         // 암살 수행이 끝났을 경우 세팅을 원상복귀하기 위한 함수
+    }
+
+    private void OffAssassinationBool()
+    {
+        pc.invincible = false;
+        duringAssassination = false;
+        assassinationOrder = false;
+        lockon = false;
+        pc.executions = false;
     }
 
     private void OnAssassinationEffect()
@@ -215,7 +228,7 @@ public class Assassination : MonoBehaviour
         SetDirection();
     }
 
-    private void SetAssassinationBool()
+    private void OnAssassinationBool()
     {
         duringAssassination = true;
         pc.executions = true;

@@ -6,22 +6,32 @@ using System.Reflection;
 using UnityEngine;
 
 public class Executions : MonoBehaviour
-{
+{ 
+    // ======= Component ========
     EnemyController controller;
     Assassination ass;
+    // ==========================
 
+    // ====== Executions Range =======
     private float range = 1.5f;
     private float outrange = 3f;
+    private float angleRange = 30f;
+    // ===============================
 
+    // ===== Send To Player =====
     [SerializeField] private Transform offsetTransform;
     [SerializeField] private Transform assassinationZone;
+    // ==========================
 
+    // ====== LayerMask ======
     [SerializeField] private LayerMask playerMask;
     [SerializeField] private LayerMask obstacleMask;
+    // ===================
 
-    private float angleRange = 30f;
+    // ===== Bool of State =====
     private bool inRange = false;
     private bool isDead = false;
+    // ==========================
 
     private void Start()
     {

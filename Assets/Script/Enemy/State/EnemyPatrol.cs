@@ -5,25 +5,28 @@ using UnityEngine;
 enum EnemyType { None, Partol }
 public class EnemyPatrol : MonoBehaviour
 {
-    private EnemyController controller;
 
+    // ===== Component =====
+    private EnemyController controller;
+    // =====================
+
+    // ===== Patrol Point =====
     [SerializeField]
     private Transform patrolPoint;
-
-    [SerializeField]
-    private EnemyType enemyType;
-
     private List<Transform> patrolPoints = new List<Transform>();
-
     private int patrolPointnum = 0;
+    // =========================
 
-    [SerializeField]
-    private bool isCyclingPatrol;
+    // ===== Patrol Type =====
+    [SerializeField] private EnemyType enemyType;
+    [SerializeField] private bool isCyclingPatrol;
+    // =======================
 
+    // ===== Patrol State =====
     private bool reverse = false;
     private bool isArrival = false;
-
-    private Coroutine patrolPointRotine = null;
+    private Coroutine patrolPointRoutine = null;
+    // ========================
 
     private void Awake()
     {
@@ -39,7 +42,7 @@ public class EnemyPatrol : MonoBehaviour
         IsPatrolling();
 
         // Start Patrol
-        controller.SetMoveSpeed();
+        //controller.SetMoveSpeed();
         GoNextPatrolPoint();
     }
 
@@ -57,9 +60,9 @@ public class EnemyPatrol : MonoBehaviour
     {
         isArrival = true;
         controller.SetIsMoving(false);
-        if (patrolPointRotine == null)
+        if (patrolPointRoutine == null)
         {
-            patrolPointRotine = StartCoroutine(StayPatrolPoint());
+            patrolPointRoutine = StartCoroutine(StayPatrolPoint());
         }
     }
 
@@ -67,7 +70,7 @@ public class EnemyPatrol : MonoBehaviour
     {
         yield return new WaitForSeconds(2f);
         GoNextPatrolPoint();
-        patrolPointRotine = null;
+        patrolPointRoutine = null;
         isArrival = false;
     }
 
@@ -97,7 +100,7 @@ public class EnemyPatrol : MonoBehaviour
             }
         }
 
-        controller.SetNextPatrolPoiont(patrolPoints[patrolPointnum]);
+        //controller.SetNextPatrolPoiont(patrolPoints[patrolPointnum]);
     }
 
     private void CheckPatrolPoint()
