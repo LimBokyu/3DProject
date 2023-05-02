@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,33 +8,39 @@ public class EnemyPatrol : MonoBehaviour
     private EnemyController controller;
 
     [SerializeField]
-    private Transform[] patrolPoint;
+    private Transform patrolPoint;
 
     [SerializeField]
     private EnemyType enemyType;
 
-    private List<Transform> patrolPoints;
+    private List<Transform> patrolPoints = new List<Transform>();
 
     private int patrolPointnum = 0;
 
+    [SerializeField]
     private bool isCyclingPatrol;
+
     private bool reverse = false;
+    private bool isArrival = false;
+
+    private Coroutine patrolPointRotine = null;
 
     private void Awake()
     {
-        isCyclingPatrol = enemyType == EnemyType.None ? false : true;
         controller = GetComponent<EnemyController>();
     }
     private void Start()
     {
-        patrolPoints = new List<Transform>();
-
-        for(int index = 0; index < patrolPoint.Length; index++)
+        for (int index = 0; index < patrolPoint.childCount; index++)
         {
-            patrolPoints.Add(patrolPoint[index]);
+            patrolPoints.Add(patrolPoint.GetChild(index));
         }
 
         IsPatrolling();
+
+        // Start Patrol
+        controller.SetMoveSpeed();
+        GoNextPatrolPoint();
     }
 
     private void IsPatrolling()
@@ -46,35 +53,63 @@ public class EnemyPatrol : MonoBehaviour
         CheckPatrolPoint();
     }
 
+    private void ArriveAtPatrolPoint()
+    {
+        isArrival = true;
+        controller.SetIsMoving(false);
+        if (patrolPointRotine == null)
+        {
+            patrolPointRotine = StartCoroutine(StayPatrolPoint());
+        }
+    }
+
+    private IEnumerator StayPatrolPoint()
+    {
+        yield return new WaitForSeconds(2f);
+        GoNextPatrolPoint();
+        patrolPointRotine = null;
+        isArrival = false;
+    }
+
+    private void GoNextPatrolPoint()
+    {
+        Debug.Log("MoveAgain");
+        controller.SetIsMoving(true);
+        if (isCyclingPatrol)
+        {
+            if ((patrolPointnum == 0 && reverse) ||
+               (patrolPointnum >= patrolPoints.Count - 1 && !reverse))
+            {
+                reverse = !reverse;
+            }
+
+            patrolPointnum = reverse ? patrolPointnum-- : patrolPointnum++;
+        }
+        else
+        {
+            if (patrolPointnum >= patrolPoints.Count - 1)
+            {
+                patrolPointnum = 0;
+            }
+            else
+            {
+                patrolPointnum++;
+            }
+        }
+
+        controller.SetNextPatrolPoiont(patrolPoints[patrolPointnum]);
+    }
+
     private void CheckPatrolPoint()
     {
         float dis = Vector3.Distance(transform.position, patrolPoints[patrolPointnum].position);
 
-        if(dis <= 0.5f)
+        if(dis <= 0.2f)
         {
-            if(isCyclingPatrol)
+            if (!isArrival)
             {
-                if((patrolPointnum == 0 && reverse) ||
-                   (patrolPointnum >= patrolPoints.Count && !reverse))
-                {
-                    reverse = !reverse;
-                }
-
-                patrolPointnum = reverse ? patrolPointnum-- : patrolPointnum++;
+                ArriveAtPatrolPoint();
             }
-            else
-            {
-                if (patrolPointnum >= patrolPoints.Count)
-                {
-                    patrolPointnum = 0;
-                }
-                else
-                {
-                    patrolPointnum++;
-                }
-            }
-
-            controller.SetNextPatrolPoiont(patrolPoint[patrolPointnum]);
         }
     }
 }

@@ -103,6 +103,7 @@ public class EnemyController : MonoBehaviour
                 break;
 
             case EnemyState.Patrol:
+                enemyPatrol.PatrolBehaviour();
                 break;
 
             case EnemyState.Chase:
@@ -113,7 +114,7 @@ public class EnemyController : MonoBehaviour
                 break;
         }
 
-        Move();
+        //Move();
         EnemySight();
         CheckHP();
         StateUpdate();
@@ -150,6 +151,11 @@ public class EnemyController : MonoBehaviour
     public bool GetCombatState()
     {
         return onCombat;
+    }
+
+    public void SetIsMoving(bool value)
+    {
+        isMoving = value;
     }
 
     private void EnemySight()
@@ -266,6 +272,11 @@ public class EnemyController : MonoBehaviour
                 state = EnemyState.MoveBack;
             }
         }
+    }
+
+    public void SetMoveSpeed()
+    {
+        nav.speed = isPatrol ? 1f : 3.5f;
     }
 
     private void NavControl(bool value)
