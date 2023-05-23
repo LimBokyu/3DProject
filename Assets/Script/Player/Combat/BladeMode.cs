@@ -10,7 +10,7 @@ public class BladeMode : MonoBehaviour
     public TimeManager timemanager;
     public Transform CutPlane;
     private float cutTimer = 0.2f;
-    private float attackTimer = 0;
+    private float attackTimer = 0f;
     private bool cutable = true;
     private Coroutine cutcool = null;
 
@@ -38,18 +38,13 @@ public class BladeMode : MonoBehaviour
     public void BladeModeState()
     {
         if (!BladeAttack)
-            CutPlane.Rotate(0f, 0f, Input.GetAxisRaw("Horizontal") * Time.unscaledDeltaTime * 100);
+            CutPlane.Rotate(0f, 0f, Input.GetAxisRaw("Horizontal") * Time.unscaledDeltaTime * 100f);
 
         if (OnBladeMode)
         {
             if (Input.GetButtonDown("Fire1"))
             {
-                BladeStart?.Invoke();
-                playerCam.CameraShake();
-                BladeAttack = true;
-                cutable = false;
-                if (cutcool == null)
-                    cutcool = StartCoroutine(CutCoolTime());
+                AttackBladeMode();
             }
 
             if (BladeAttack)
@@ -58,11 +53,21 @@ public class BladeMode : MonoBehaviour
                 if (attackTimer >= cutTimer)
                 {
                     BladeEnd?.Invoke();
-                    attackTimer = 0;
+                    attackTimer = 0f;
                     BladeAttack = !BladeAttack;
                 }
             }
         }
+    }
+
+    private void AttackBladeMode()
+    {
+        BladeStart?.Invoke();
+        playerCam.CameraShake();
+        BladeAttack = true;
+        cutable = false;
+        if (cutcool == null)
+            cutcool = StartCoroutine(CutCoolTime());
     }
 
     private IEnumerator CutCoolTime()
@@ -72,7 +77,7 @@ public class BladeMode : MonoBehaviour
         cutcool = null;
         float ran = Random.Range(10f, 30f);
         int randompos = Random.Range(0, 2);
-        float positive = randompos == 0 ? 1f : -1f;
+        float positive = randompos == 0f ? 1f : -1f;
         CutPlane.Rotate(0f, 0f, ran * positive);
     }
     public void ModeChanger(bool BladeMode)
@@ -84,16 +89,14 @@ public class BladeMode : MonoBehaviour
         playerCam.BladeModeCameraSetting(OnBladeMode);
         postprocessingcontroller.BladeModeSetPostProcessing(OnBladeMode);
         playercontroller.anim.SetBool("BladeMode", OnBladeMode);
-        attackTimer = 0;
+        attackTimer = 0f;
         timemanager.SlowMotion(OnBladeMode);
 
-        string debug = OnBladeMode ? "BladeModeOn" : "BladeModeOff";
-        Debug.Log(debug);
         if (!OnBladeMode)
         {
             float y = transform.eulerAngles.y;
             transform.rotation = Quaternion.Euler(Vector3.zero);
-            transform.Rotate(new Vector3(0, y, 0));
+            transform.Rotate(new Vector3(0f, y, 0f));
             // ㄴ BladeMode 시에 바라보고 있던 방향으로의 캐릭터를 회전 
         }
         else

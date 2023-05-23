@@ -5,16 +5,19 @@ using UnityEngine;
 enum EnemyType { None, Partol }
 public class EnemyPatrol : MonoBehaviour
 {
-
     // ===== Component =====
     private EnemyController controller;
+    private EnemyMove enemyMove;
     // =====================
 
     // ===== Patrol Point =====
     [SerializeField]
     private Transform patrolPoint;
-    private List<Transform> patrolPoints = new List<Transform>();
-    private int patrolPointnum = 0;
+    [SerializeField]
+    List<Transform> patrolPoints = new List<Transform>();
+    [SerializeField]
+    private Transform destination;
+    private int patrolPointNum = 0;
     // =========================
 
     // ===== Patrol Type =====
@@ -31,6 +34,7 @@ public class EnemyPatrol : MonoBehaviour
     private void Awake()
     {
         controller = GetComponent<EnemyController>();
+        enemyMove = GetComponent<EnemyMove>();
     }
     private void Start()
     {
@@ -43,7 +47,7 @@ public class EnemyPatrol : MonoBehaviour
 
         // Start Patrol
         //controller.SetMoveSpeed();
-        GoNextPatrolPoint();
+        GoNextPatrolPoint(); 
     }
 
     private void IsPatrolling()
@@ -80,32 +84,43 @@ public class EnemyPatrol : MonoBehaviour
         controller.SetIsMoving(true);
         if (isCyclingPatrol)
         {
-            if ((patrolPointnum == 0 && reverse) ||
-               (patrolPointnum >= patrolPoints.Count - 1 && !reverse))
-            {
-                reverse = !reverse;
-            }
-
-            patrolPointnum = reverse ? patrolPointnum-- : patrolPointnum++;
+            CyclingPatrol();
         }
         else
         {
-            if (patrolPointnum >= patrolPoints.Count - 1)
-            {
-                patrolPointnum = 0;
-            }
-            else
-            {
-                patrolPointnum++;
-            }
+            RoundTripPatrol();
         }
 
-        //controller.SetNextPatrolPoiont(patrolPoints[patrolPointnum]);
+        enemyMove.SetNavAgentDestination(patrolPoints[patrolPointNum].position);
+        destination = patrolPoints[patrolPointNum];
+    }
+
+    private void CyclingPatrol()
+    {
+        if ((patrolPointNum == 0 && reverse) ||
+        (patrolPointNum >= patrolPoints.Count - 1 && !reverse))
+        {
+            reverse = !reverse;
+        }
+
+        patrolPointNum = reverse ? patrolPointNum-- : patrolPointNum++;
+    }
+
+    private void RoundTripPatrol()
+    {
+        if (patrolPointNum >= patrolPoints.Count)
+        {
+            patrolPointNum = 0;
+        }
+        else
+        {
+            patrolPointNum++;
+        }
     }
 
     private void CheckPatrolPoint()
     {
-        float dis = Vector3.Distance(transform.position, patrolPoints[patrolPointnum].position);
+        float dis = Vector3.Distance(transform.position, patrolPoints[patrolPointNum].position);
 
         if(dis <= 0.2f)
         {

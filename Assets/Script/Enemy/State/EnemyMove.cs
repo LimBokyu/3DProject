@@ -7,6 +7,9 @@ public class EnemyMove : MonoBehaviour
 {
     private NavMeshAgent nav;
 
+    private float walkSpeed = 1f;
+    private float runSpeed = 3.5f;
+
     private void Awake()
     {
         nav = GetComponent<NavMeshAgent>();
@@ -29,6 +32,6 @@ public class EnemyMove : MonoBehaviour
 
     public void SetNavSpeed(bool value)
     {
-        nav.speed = value ? 1f : 3.5f;
+        nav.speed = value ? walkSpeed : runSpeed;
     }
 }

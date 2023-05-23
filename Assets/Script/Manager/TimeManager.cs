@@ -10,23 +10,25 @@ public class TimeManager : MonoBehaviour
     private float SlowDownFactor = 0.05f;
     [SerializeField]
     private float normalFactor = 1f;
-
-    private int killCount = 0;
+    [SerializeField]
+    private float timeRecovery = 0.02f;
 
     public void SlowMotion(bool BladeMode)
     {
         Time.timeScale = BladeMode ? SlowDownFactor : normalFactor;
-        Time.fixedDeltaTime =  Time.timeScale * 0.02f;
+        Time.fixedDeltaTime = Time.timeScale * 0.02f;
     }
 
-    public void ResetCount()
+    public void RecoverNormalTime()
     {
-        killCount = 0;
+        if(Time.timeScale < 1f)
+        {
+            Time.timeScale += timeRecovery;
+        }
+        
+        if(Time.timeScale > 1f)
+        {
+            Time.timeScale = 1f;
+        }
     }
-
-    public void AddKillCount()
-    {
-        killCount++;
-    }
-
 }
