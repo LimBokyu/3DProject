@@ -15,6 +15,11 @@ public class EnemyMove : MonoBehaviour
         nav = GetComponent<NavMeshAgent>();
     }
 
+    private void Start()
+    {
+        nav.speed = walkSpeed;
+    }
+
     public void SetNavMeshMoving(bool value)
     {
         nav.isStopped = value;
@@ -33,5 +38,10 @@ public class EnemyMove : MonoBehaviour
     public void SetNavSpeed(bool value)
     {
         nav.speed = value ? walkSpeed : runSpeed;
+    }
+
+    public float RemainDistance()
+    {
+        return nav.remainingDistance;
     }
 }

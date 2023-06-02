@@ -1,57 +1,106 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Text;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class SceneManager : MonoBehaviour
 {
+    [SerializeField]
     private LoadingScreen loadingScreen;
+
     private AsyncOperation oper;
-    private YieldInstruction ins = new WaitForSeconds(1f);
-    private CustomYieldInstruction ins2;
+    private YieldInstruction waitAnimation = new WaitForSeconds(1f);
+    private YieldInstruction progressUpdate = new WaitForSeconds(0.1f);
+    private CustomYieldInstruction loadingComplete;
 
-    private bool trigger = false;
-    private bool isLoading = false;
+    [SerializeField]
+    private GameObject progressBar;
+    private Slider slider;
 
-    private void Awake()
-    {
-        loadingScreen = GetComponent<LoadingScreen>();
-    }
+    private bool repeat = true;
+    private string sceneName = null;
+
+    StringBuilder str = new StringBuilder();
+    StringBuilder debugLog = new StringBuilder();
 
     private void Start()
     {
-        ins2 = new WaitUntil(() => { return oper.isDone; });
+        loadingComplete = new WaitUntil(() => { return oper.isDone; });
+        slider = progressBar.GetComponent<Slider>();
+    }
+
+    public void StartLoadingAnimation()
+    {
+        loadingScreen.StartLoading();
+    }
+
+    public void LoadSceneSetting(bool value)
+    {
+        sceneName = value ? "GameTitle" : "SampleScene";
+        StartLoadingAnimation();
+        StartCoroutine(StartLoadScene());
+    }
+
+    public void LoadingSceneCompleted()
+    {
+        oper.allowSceneActivation = true;
     }
 
     public void LoadScene()
     {
-        if (!trigger)
+        OnScreenProgress();
+
+        oper = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName);
+        debugLog.Append("SceneLoading : ");
+        debugLog.Append(sceneName);
+        Debug.Log(debugLog.ToString());
+        oper.allowSceneActivation = false;
+        debugLog.Clear();
+        oper.completed += OnLoadComplete;
+    }
+
+    private void OnScreenProgress()
+    {
+        progressBar.SetActive(true);
+        StartCoroutine(ShowProgress());
+    }
+
+    IEnumerator StartLoadScene()
+    {
+        yield return waitAnimation;
+        LoadScene();
+        LoadingSceneCompleted();
+    }
+
+    IEnumerator ShowProgress()
+    {
+        while (repeat)
         {
-            isLoading = true;
-            loadingScreen.StartLoading();
-
-            //UnityEngine.SceneManagement.SceneManager.LoadScene("asd");
-            oper = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("AfterLoadScene");
-            oper.allowSceneActivation = false;
-            oper.completed += OnLoadComplete;
-
-            StartCoroutine(Routine());
-            trigger = true;
+            yield return progressUpdate;
+            str.Append("Progress : ");
+            str.Append(oper.progress);
+            str.Append("%");
+            Debug.Log(str.ToString());
+            str.Clear();
+            slider.value = oper.progress;
         }
     }
 
-    IEnumerator Routine()
+    public void OnLoadComplete(AsyncOperation operation)
     {
-        yield return ins;
-        yield return ins2;
-        oper.allowSceneActivation = true;
-        trigger = false;
+        Debug.Log("LoadCompleted!");
+        repeat = false;
+        StopCoroutine(ShowProgress());
+        progressBar.SetActive(false);
+        loadingScreen.EndLoading();
     }
 
-    public void OnLoadComplete(AsyncOperation oper)
+    public string GetCurrentSceneName()
     {
-        loadingScreen.EndLoading();
+        return UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
     }
 }

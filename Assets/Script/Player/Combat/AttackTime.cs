@@ -6,16 +6,37 @@ public class AttackTime
 {
 
     private string name;
-    public float startattack { get; set; }
-    public float endattack { get; set; }
-    public float endanim { get; set; }
+    private float startattack;
+    private float endattack;
+    private float endanim;
+
+    public string Name
+    { 
+        get { return name; }
+        set { name = value; }
+    }
+    public float StartAttack
+    {
+        get { return startattack; }
+        set { startattack = value; }
+    }
+    public float EndAttack
+    {
+        get { return endattack; }
+        set { endattack = value; }
+    }
+    public float Endanim
+    {
+        get { return endanim; }
+        set { endanim = value; }
+    }
 
     public AttackTime(string name, float Start, float End, float endanim)
     {
-        this.name = name;
-        this.startattack = Start;
-        this.endattack = End;
-        this.endanim = endanim;
+        Name = name;
+        StartAttack = Start;
+        EndAttack = End;
+        Endanim = endanim;
     }
 
 }

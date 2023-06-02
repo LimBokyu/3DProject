@@ -76,20 +76,20 @@ public class PlayerAttack : MonoBehaviour
             MeleeAttack.TryGetValue(key, out attack);
             prevkey = key;
 
-            if (attackTimer >= attack.startattack &&
-               attackTimer < attack.endanim)
+            if (attackTimer >= attack.StartAttack &&
+               attackTimer < attack.Endanim)
             {
                 CheckCombo();
             }
 
-            if (attackTimer >= attack.startattack &&
-                attackTimer < attack.endattack)
+            if (attackTimer >= attack.StartAttack &&
+                attackTimer < attack.EndAttack)
             {
                 AttackStart?.Invoke();
 
             }
-            else if (attackTimer >= attack.endattack &&
-                    attackTimer <= attack.endanim)
+            else if (attackTimer >= attack.EndAttack &&
+                    attackTimer <= attack.Endanim)
             {
                 AttackEnd?.Invoke();
                 if (Combo)
@@ -97,7 +97,7 @@ public class PlayerAttack : MonoBehaviour
                     CallNextAttack = true;
                 }
             }
-            else if (attackTimer > attack.startattack)
+            else if (attackTimer > attack.StartAttack)
             {
                 playercontroller.anim.SetBool(key, false);
                 attackTimer = 0;
@@ -174,14 +174,14 @@ public class PlayerAttack : MonoBehaviour
         AttackTime dashattack;
         string key = isRight ? "DashAttack1" : "DashAttack2";
         dashAttack.TryGetValue(key,out dashattack);
-        if (dashattack.startattack <= attackTimer
-            && dashattack.endanim > attackTimer)
+        if (dashattack.StartAttack <= attackTimer
+            && dashattack.Endanim > attackTimer)
         {
             ContinueDashAttack();
         }
 
-        if(dashattack.startattack <= attackTimer &&
-            dashattack.endattack > attackTimer)
+        if(dashattack.StartAttack <= attackTimer &&
+            dashattack.EndAttack > attackTimer)
         {
             AttackStart?.Invoke();
         }
@@ -192,12 +192,12 @@ public class PlayerAttack : MonoBehaviour
             isRight = !isRight;
             Combo = false;
         }
-        else if(dashattack.endattack <= attackTimer &&
-            dashattack.endanim > attackTimer)
+        else if(dashattack.EndAttack <= attackTimer &&
+            dashattack.Endanim > attackTimer)
         {
             AttackEnd?.Invoke();
         }
-        else if(dashattack.endanim <= attackTimer)
+        else if(dashattack.Endanim <= attackTimer)
         {
             attackTimer = 0;
             playercontroller.anim.SetBool("DashAttack", false);

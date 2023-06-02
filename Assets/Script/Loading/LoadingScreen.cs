@@ -4,11 +4,15 @@ using UnityEngine;
 
 public class LoadingScreen : MonoBehaviour
 {
+    [SerializeField]
     private Animator anim;
 
-    private void Awake()
+    [SerializeField]
+    private Canvas canvas;
+
+    private void Start()
     {
-        anim = GetComponent<Animator>();
+        canvas.worldCamera = Camera.main;
     }
 
     public void StartLoading()

@@ -2,14 +2,19 @@ using Cinemachine;
 using Player;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UIElements;
 
 public class BladeMode : MonoBehaviour
 {
-    public TimeManager timemanager;
-    public Transform CutPlane;
+    [SerializeField]
+    private TimeManager timemanager;
+    [SerializeField]
+    private Transform CutPlane;
     private float cutTimer = 0.2f;
+    private CustomYieldInstruction cutCoolTime = new WaitForSecondsRealtime(0.2f);
     private float attackTimer = 0f;
     private bool cutable = true;
     private Coroutine cutcool = null;
@@ -34,6 +39,10 @@ public class BladeMode : MonoBehaviour
     private void Start()
     {
         flash = playercontroller.flash;
+        if (timemanager == null)
+        {
+            timemanager = GameObject.Find("GameManager").GetComponent<TimeManager>();
+        }
     }
     public void BladeModeState()
     {
@@ -72,7 +81,7 @@ public class BladeMode : MonoBehaviour
 
     private IEnumerator CutCoolTime()
     {
-        yield return new WaitForSecondsRealtime(cutTimer);
+        yield return cutCoolTime;
         cutable = true;
         cutcool = null;
         float ran = Random.Range(10f, 30f);

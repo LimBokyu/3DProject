@@ -51,6 +51,7 @@ public class EnemyController : MonoBehaviour
     // ===============================
 
     // ======== state of bool ========
+    [SerializeField]
     private bool isMoving = false;
     private bool isDead = false;
     private bool onDamaged = false;
@@ -117,8 +118,12 @@ public class EnemyController : MonoBehaviour
 
         EnemySight();
         CheckHP();
-        StateUpdate();
         UpdateAnim();
+    }
+
+    private void LateUpdate()
+    {
+        StateUpdate();
     }
 
     private void StateUpdate()

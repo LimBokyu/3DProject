@@ -10,6 +10,8 @@ public class PlayerCamera : MonoBehaviour
     [SerializeField] private CinemachineComposer[] composers;
     [SerializeField] private CinemachineFreeLook freeLook;
     [SerializeField] private CinemachineVirtualCamera virtualcam;
+
+    private CustomYieldInstruction updateDelay = new WaitForSecondsRealtime(0.01f);
     private float normalFov = 30;
     private float zoomFov = 15;
     public Vector3 zoomOffset;
@@ -25,7 +27,7 @@ public class PlayerCamera : MonoBehaviour
         float offsetval = 0.3f;
         while (true)
         {
-            yield return new WaitForSecondsRealtime(0.01f);
+            yield return updateDelay;
             if (OnBladeMode)
             {
                 start += offsetval;
@@ -54,7 +56,7 @@ public class PlayerCamera : MonoBehaviour
         float fovspeed = 1f;
         while (true)
         {
-            yield return new WaitForSecondsRealtime(0.01f);
+            yield return updateDelay;
             if (OnBladeMode)
             {
                 start -= fovspeed;

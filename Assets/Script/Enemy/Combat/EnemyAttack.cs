@@ -2,11 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+enum WeaponType { pistol, rifle }
 public class EnemyAttack : MonoBehaviour
 {
     private int ammo;
     private Coroutine reload = null;
     private Vector3 dir;
+    private WeaponType type;
 
     public Transform muzzle;
 

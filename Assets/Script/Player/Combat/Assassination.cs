@@ -55,6 +55,10 @@ public class Assassination : MonoBehaviour
     private void Start()
     {
         flash = pc.flash;
+        if(timeManager == null)
+        {
+            timeManager = GameObject.Find("GameManager").GetComponent<TimeManager>();
+        }
     }
 
     public void AssassinationBehaviour()

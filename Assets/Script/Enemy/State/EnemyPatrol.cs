@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 enum EnemyType { None, Partol }
 public class EnemyPatrol : MonoBehaviour
@@ -17,6 +18,7 @@ public class EnemyPatrol : MonoBehaviour
     List<Transform> patrolPoints = new List<Transform>();
     [SerializeField]
     private Transform destination;
+    [SerializeField]
     private int patrolPointNum = 0;
     // =========================
 
@@ -30,6 +32,10 @@ public class EnemyPatrol : MonoBehaviour
     private bool isArrival = false;
     private Coroutine patrolPointRoutine = null;
     // ========================
+
+    // ======= Others =======
+    private YieldInstruction patrolStayTime = new WaitForSeconds(3.5f);
+
 
     private void Awake()
     {
@@ -62,20 +68,26 @@ public class EnemyPatrol : MonoBehaviour
 
     private void ArriveAtPatrolPoint()
     {
-        isArrival = true;
-        controller.SetIsMoving(false);
+        SetIsMoving(true);
         if (patrolPointRoutine == null)
         {
             patrolPointRoutine = StartCoroutine(StayPatrolPoint());
         }
     }
 
+    private void SetIsMoving(bool value)
+    {
+        isArrival = value;
+        controller.SetIsMoving(!value);
+        enemyMove.SetNavMeshMoving(value);
+    }
+
     private IEnumerator StayPatrolPoint()
     {
-        yield return new WaitForSeconds(2f);
+        yield return patrolStayTime;
         GoNextPatrolPoint();
         patrolPointRoutine = null;
-        isArrival = false;
+        SetIsMoving(false);
     }
 
     private void GoNextPatrolPoint()
@@ -108,7 +120,7 @@ public class EnemyPatrol : MonoBehaviour
 
     private void RoundTripPatrol()
     {
-        if (patrolPointNum >= patrolPoints.Count)
+        if (patrolPointNum >= patrolPoints.Count -1)
         {
             patrolPointNum = 0;
         }
@@ -120,9 +132,7 @@ public class EnemyPatrol : MonoBehaviour
 
     private void CheckPatrolPoint()
     {
-        float dis = Vector3.Distance(transform.position, patrolPoints[patrolPointNum].position);
-
-        if(dis <= 0.2f)
+        if(enemyMove.RemainDistance() <= 0.2f)
         {
             if (!isArrival)
             {

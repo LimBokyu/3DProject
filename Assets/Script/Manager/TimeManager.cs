@@ -12,11 +12,24 @@ public class TimeManager : MonoBehaviour
     private float normalFactor = 1f;
     [SerializeField]
     private float timeRecovery = 0.02f;
+    [SerializeField]
+    private float prevTimeScale = 0f;
 
     public void SlowMotion(bool BladeMode)
     {
         Time.timeScale = BladeMode ? SlowDownFactor : normalFactor;
         Time.fixedDeltaTime = Time.timeScale * 0.02f;
+    }
+
+    public void StopTime()
+    {
+        prevTimeScale = Time.timeScale;
+        Time.timeScale = 0f;
+    }
+
+    public void ResumeTime()
+    {
+        Time.timeScale = prevTimeScale;
     }
 
     public void RecoverNormalTime()
